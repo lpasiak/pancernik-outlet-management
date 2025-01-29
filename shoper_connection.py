@@ -3,6 +3,8 @@ import requests
 import time
 from pathlib import Path
 import os
+import json
+import shoper_data_transform
 
 class ShoperAPIClient:
 
@@ -74,8 +76,6 @@ class ShoperAPIClient:
 
         products.to_excel(os.path.join(self.sheets_dir, 'shoper_all_products.xlsx'), index=False)
         return products
-    
-    import os
 
     def get_limited_products(self, max_pages):
         products = []
@@ -103,6 +103,24 @@ class ShoperAPIClient:
 
         return products
     
+    def get_a_single_product(self, product_id):
+        url = f'{self.site_url}/webapi/rest/products/{product_id}'
+        photo_url = f'{self.site_url}/webapi/rest/product-images'
+        
+        photo_filter = {
+            "filters": json.dumps({"product_id": product_id}),
+            "limit": 50
+        }
+
+        response = self._handle_request('GET', url)
+        photo_response = self._handle_request('GET', photo_url, params=photo_filter)
+
+        product = response.json()
+        product_photos = photo_response.json()['list']
+        product['img'] = product_photos
+
+        return product
+
     def get_all_categories(self):
         categories = []
         page = 1
@@ -177,3 +195,29 @@ class ShoperAPIClient:
             raise Exception(f"Failed to create special offer: {response.status_code}, {response.text}")
 
         return response
+    
+    def create_a_product(self):
+        url = f'{self.site_url}/webapi/rest/products'
+        product_id = input('Id of a product you want to create: ')
+        product = self.get_a_single_product(product_id)
+
+        final_product = shoper_data_transform.transform_offer_to_product(product)
+
+        response = self._handle_request('POST', url, json=final_product)
+        final_product_id = response.json()
+
+        print(f'A new product created! ID: {final_product_id}')
+
+        final_product_photos = shoper_data_transform.transform_offer_photos(product, final_product_id)
+
+        photo_url = f"{self.site_url}/webapi/rest/product-images"
+
+        for photo in final_product_photos:
+            
+            response = self._handle_request('POST', photo_url, json=photo)
+
+            if response.status_code == 200:
+                print(f"Uploaded image {photo['order']} succesfully!")
+            else:
+                print(f"Failed to upload image {photo['order']}. {response.text}")
+

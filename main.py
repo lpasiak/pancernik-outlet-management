@@ -22,11 +22,12 @@ if __name__ == "__main__":
 
         # Authenticate with the Shoper API
         shoper_client.connect()
-        gsheets_client.connect()
+        # gsheets_client.connect()
 
-        data = gsheets_client.select_offers_ready_to_publish()
-
-        shoper_client.get_limited_products(3)
+        # data = gsheets_client.select_offers_ready_to_publish()
+        # shoper_client.get_limited_products(3)
+        shoper_client.create_a_product()
+        # shoper_client.get_a_single_product(9976)
 
     except Exception as e:
         print(f"Error: {e}")
