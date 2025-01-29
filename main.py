@@ -1,4 +1,4 @@
-from api_connection import ShoperAPIClient
+from shoper_connection import ShoperAPIClient
 from gsheets_connection import GSheetsClient
 import pandas as pd
 import os
@@ -14,17 +14,19 @@ if __name__ == "__main__":
 
     gsheets_client = GSheetsClient(
         credentials=os.path.join('credentials', 'gsheets_credentials.json'),
-        sheet_id=os.environ.get('SHEET_ID')    
+        sheet_id=os.environ.get('SHEET_ID'),
+        sheet_name='Test'
     )
 
     try:
 
         # Authenticate with the Shoper API
-        # shoper_client.connect()
+        shoper_client.connect()
         gsheets_client.connect()
 
-        data = gsheets_client.get_data('Test')
-        print(data)
+        data = gsheets_client.select_offers_ready_to_publish()
+
+        shoper_client.get_limited_products(3)
 
     except Exception as e:
         print(f"Error: {e}")
