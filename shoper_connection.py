@@ -47,6 +47,7 @@ class ShoperAPIClient:
         page = 1
         url = f'{self.site_url}/webapi/rest/products'
 
+        print("Downloading all products.")
         while True:
             params = {'limit': 50, 'page': page}
             response = self._handle_request('GET', url, params=params)
@@ -117,6 +118,7 @@ class ShoperAPIClient:
         page = 1
         url = f'{self.site_url}/webapi/rest/attribute-groups'
 
+        print("Downloading all attribute groups.")
         while True:
             params = {'limit': 50, 'page': page}
             response = self._handle_request('GET', url, params=params)
@@ -144,6 +146,7 @@ class ShoperAPIClient:
         page = 1
         url = f'{self.site_url}/webapi/rest/attributes'
 
+        print("Downloading all attributes.")
         while True:
             params = {'limit': 50, 'page': page}
             response = self._handle_request('GET', url, params=params)
@@ -171,6 +174,7 @@ class ShoperAPIClient:
         page = 1
         url = f'{self.site_url}/webapi/rest/categories'
 
+        print("Downloading all categories.")
         while True:
             params = {'limit': 50, 'page': page}
             response = self._handle_request('GET', url, params=params)
@@ -189,32 +193,9 @@ class ShoperAPIClient:
             categories.extend(page_data)
             page += 1
         
+        df = pd.DataFrame(categories)
         categories.to_excel(os.path.join(self.sheets_dir, 'shoper_all_categories.xlsx'), index=False)
-        return categories
-
-    def get_all_special_offers(self):
-        special_offers = []
-        page = 1
-        url = f'{self.site_url}/webapi/rest/specialoffers'
-
-        while True:
-            params = {'limit': 50, 'page': page}
-            response = self._handle_request('GET', url, params=params)
-
-            if response.status_code != 200:
-                raise Exception(f"Failed to fetch data: {response.status_code}, {response.text}")
-
-            page_data = response.json().get('list', [])
-
-            if not page_data:  # If no data is returned
-                break
-
-            print(f'Page: {page}')
-            special_offers.extend(page_data)
-            page += 1
-
-        special_offers.to_excel(os.path.join(self.sheets_dir, 'shoper_all_special_offers.xlsx'), index=False)
-        return special_offers
+        return df
     
     def create_a_product(self, product_id, outlet_code, damage_type):
         url = f'{self.site_url}/webapi/rest/products'
