@@ -1,5 +1,6 @@
 import os, random
 from data import info
+from config import config
 
 def transform_offer_to_product(source_product, outlet_code, damage_type):
     """Transforms a downloaded Shoper offer into a ready-to-upload product."""
@@ -77,9 +78,13 @@ def transform_offer_photos(source_product, new_product_id):
 
     for index, image in enumerate(source_images, start=1):
 
+        # Creating a url for an image
+        site_url = f"{os.environ.get(f'SHOPERSITE_{config['site']}')}"
+        image_id = f"{image['gfx_id']}.{image['extension']}"
+
         image_item = {
             'product_id': new_product_id,
-            'url': f"{os.environ.get('SHOPERSITE_MAIN')}/userdata/public/gfx/{image['gfx_id']}.{image['extension']}",
+            'url': f"{site_url}/userdata/public/gfx/{image_id}",
             'is_main': 1 if index == 1 else 0,
             'order': index,
             'name': f'{new_product_id}_{index}'

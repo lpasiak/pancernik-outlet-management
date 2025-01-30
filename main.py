@@ -1,15 +1,14 @@
 from shoper_connection import ShoperAPIClient
 from gsheets_connection import GSheetsClient
-import pandas as pd
 import os
-
+from config import config
 
 if __name__ == "__main__":
 
     shoper_client = ShoperAPIClient(
-        site_url=os.environ.get('SHOPERSITE_MAIN'),
-        login=os.environ.get('LOGIN_MAIN'),
-        password=os.environ.get('PASSWORD_MAIN')
+        site_url=os.environ.get(f'SHOPERSITE_{config['site']}'),
+        login=os.environ.get(f'LOGIN_{config['site']}'),
+        password=os.environ.get(f'PASSWORD_{config['site']}')
     )
 
     gsheets_client = GSheetsClient(
