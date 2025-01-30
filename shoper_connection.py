@@ -1,9 +1,6 @@
 import pandas as pd
-import requests
-import time
+import requests, time, os, json
 from pathlib import Path
-import os
-import json
 import shoper_data_transform
 
 class ShoperAPIClient:
@@ -115,6 +112,12 @@ class ShoperAPIClient:
 
         return product
 
+    def get_all_attribute_groups(self):
+        pass
+
+    def get_all_attributes(self):
+        pass
+
     def get_all_categories(self):
         categories = []
         page = 1
@@ -190,17 +193,15 @@ class ShoperAPIClient:
 
         return response
     
-    def create_a_product(self, outlet_code, damage_type):
+    def create_a_product(self, product_id, outlet_code, damage_type):
         url = f'{self.site_url}/webapi/rest/products'
-        product_id = input('Id of a product you want to duplicate: ')
         product = self.get_a_single_product(product_id)
 
         final_product = shoper_data_transform.transform_offer_to_product(product, outlet_code, damage_type)
 
         response = self._handle_request('POST', url, json=final_product)
         final_product_id = response.json()
-
-        print(f'A new product created! ID: {final_product_id}')
+        print(f'{response}: {final_product_id}')
 
         final_product_photos = shoper_data_transform.transform_offer_photos(product, final_product_id)
         photo_url = f"{self.site_url}/webapi/rest/product-images"
