@@ -215,31 +215,6 @@ class ShoperAPIClient:
 
         special_offers.to_excel(os.path.join(self.sheets_dir, 'shoper_all_special_offers.xlsx'), index=False)
         return special_offers
-
-    def get_all_special_offers_with_ean(self):
-        products = self.get_all_products()
-        special_offers = self.get_all_special_offers()
-
-        df_products = pd.DataFrame(products)
-        df_special_offers = pd.DataFrame(special_offers)
-
-        df = pd.merge(df_special_offers, df_products, on="product_id")
-        code_column = df.pop('code')
-        df.insert(0, 'code', code_column)
-        id_column = df.pop('product_id')
-        df.insert(0, 'product_id', id_column)
-
-        df.to_excel(os.path.join(self.sheets_dir, 'shoper_special_offers_with_ean.xlsx'), index=False)
-        return df
-
-    def create_special_offers(self, special_offer):
-        url = f'{self.site_url}/webapi/rest/specialoffers'
-        response = self._handle_request('POST', url, json=special_offer)
-
-        if response.status_code != 200:
-            raise Exception(f"Failed to create special offer: {response.status_code}, {response.text}")
-
-        return response
     
     def create_a_product(self, product_id, outlet_code, damage_type):
         url = f'{self.site_url}/webapi/rest/products'
