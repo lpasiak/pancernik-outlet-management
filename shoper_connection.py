@@ -9,13 +9,7 @@ import shoper_data_transform
 class ShoperAPIClient:
 
     def __init__(self, site_url, login, password):
-        """
-        Initialize the ShoperAPIClient with store ID and login/password credentials.
-        Args:
-            site_url (str)
-            login (str)
-            password (str)
-        """
+
         self.site_url = site_url
         self.login = login
         self.password = password
@@ -196,12 +190,12 @@ class ShoperAPIClient:
 
         return response
     
-    def create_a_product(self):
+    def create_a_product(self, outlet_code, damage_type):
         url = f'{self.site_url}/webapi/rest/products'
-        product_id = input('Id of a product you want to create: ')
+        product_id = input('Id of a product you want to duplicate: ')
         product = self.get_a_single_product(product_id)
 
-        final_product = shoper_data_transform.transform_offer_to_product(product)
+        final_product = shoper_data_transform.transform_offer_to_product(product, outlet_code, damage_type)
 
         response = self._handle_request('POST', url, json=final_product)
         final_product_id = response.json()
@@ -209,15 +203,12 @@ class ShoperAPIClient:
         print(f'A new product created! ID: {final_product_id}')
 
         final_product_photos = shoper_data_transform.transform_offer_photos(product, final_product_id)
-
         photo_url = f"{self.site_url}/webapi/rest/product-images"
 
         for photo in final_product_photos:
             
             response = self._handle_request('POST', photo_url, json=photo)
-
             if response.status_code == 200:
                 print(f"Uploaded image {photo['order']} succesfully!")
             else:
                 print(f"Failed to upload image {photo['order']}. {response.text}")
-
