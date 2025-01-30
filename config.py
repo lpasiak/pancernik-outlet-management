@@ -1,3 +1,3 @@
 config = {
-    'site': 'MAIN',
+    'site': 'MAIN', # either TEST (development) or MAIN (deployment)
 }

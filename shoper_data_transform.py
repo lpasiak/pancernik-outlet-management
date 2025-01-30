@@ -15,6 +15,7 @@ def transform_offer_to_product(source_product, outlet_code, damage_type):
     attributes = source_product['attributes']
     # attributes = change_outlet_attributes(source_attributes)
 
+    tags = [6] if config['site'] == 'MAIN' else [1]
     
     final_product = {
         'producer_id': source_product['producer_id'],
@@ -52,7 +53,7 @@ def transform_offer_to_product(source_product, outlet_code, damage_type):
         'gauge_id': source_product['gauge_id'],
         'unit_price_calculation': source_product['unit_price_calculation'],
         'newproduct': False,
-        'tags': [6],
+        'tags': tags,
         'type': source_product['type'],
         'safety_information': source_product['safety_information'],
         'feeds_excludes': source_product['feeds_excludes'],
