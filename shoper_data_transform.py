@@ -22,7 +22,6 @@ def transform_offer_to_product(source_product, outlet_code, damage_type):
         'category_id' : source_product['category_id'],
         'categories': source_product['categories'],
         'code': outlet_code,
-        'ean': source_product.get('ean', ''),
         'additional_producer': source_product.get('additional_producer', ''),
         'pkwiu': source_product['pkwiu'],
         'translations': {

@@ -204,20 +204,24 @@ class ShoperAPIClient:
         photo_url = f"{self.site_url}/webapi/rest/product-images"
 
         product = self.get_a_single_product(product_id)
-
-        barcode = { 'ean': product['code'] }
-
+        barcode = { 'ean': str(product['code']) }
+    
         # Create a product
         final_product = shoper_data_transform.transform_offer_to_product(product, outlet_code, damage_type)
-        response = self._handle_request('POST', url, json=final_product)
+        response = self._handle_request('PUT', url, json=final_product)
         final_product_id = response.json()
-        print(f'{response}: {final_product_id}')
+        print(f'Product {barcode['ean']} with ID: {final_product_id} created.')
 
-        # Try to add a barcode to the product
+        # Try to add a barcode to the product (don't add if it's faulty)
+        update_url = f'{self.site_url}/webapi/rest/products/{final_product_id}'
         try:
-            response = self._handle_request('PUT', url, params=barcode)
+            response = self._handle_request('PUT', update_url, json=barcode)
+            if response.status_code == 200:
+                print(f'{barcode['ean']} barcode added to product {final_product_id}')
+            else:
+                print(f'Failed to upload barcode. {response.json}')
         except Exception as e:
-            print(f'An error with barcode occured in product {product_id} - {barcode}: {e}')
+            print(f'An error with barcode occured in product {final_product_id} - {barcode['ean']}: {e}')
 
         # Add images to the product
         final_product_photos = shoper_data_transform.transform_offer_photos(product, final_product_id)
