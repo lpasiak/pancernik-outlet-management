@@ -194,7 +194,7 @@ class ShoperAPIClient:
             page += 1
         
         df = pd.DataFrame(categories)
-        categories.to_excel(os.path.join(self.sheets_dir, 'shoper_all_categories.xlsx'), index=False)
+        df.to_excel(os.path.join(self.sheets_dir, 'shoper_all_categories.xlsx'), index=False)
         return df
     
     def create_a_product(self, product_id, outlet_code, damage_type):
