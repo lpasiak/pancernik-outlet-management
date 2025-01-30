@@ -2,6 +2,7 @@ import pandas as pd
 import requests, time, os, json
 from pathlib import Path
 import shoper_data_transform
+import config
 
 class ShoperAPIClient:
 
@@ -49,7 +50,7 @@ class ShoperAPIClient:
 
         print("Downloading all products.")
         while True:
-            params = {'limit': 50, 'page': page}
+            params = {'limit': config.SHOPER_LIMIT, 'page': page}
             response = self._handle_request('GET', url, params=params)
             data = response.json()
             number_of_pages = data['pages']
@@ -66,8 +67,9 @@ class ShoperAPIClient:
             products.extend(page_data)
             page += 1
 
-        products.to_excel(os.path.join(self.sheets_dir, 'shoper_all_products.xlsx'), index=False)
-        return products
+        df = pd.DataFrame(products)
+        df.to_excel(os.path.join(self.sheets_dir, 'shoper_all_products.xlsx'), index=False)
+        return df
 
     def get_limited_products(self, max_pages):
         products = []
@@ -75,7 +77,7 @@ class ShoperAPIClient:
         url = f'{self.site_url}/webapi/rest/products'
 
         for page in range(1, max_pages + 1):
-            params = {'limit': 50, 'page': page}
+            params = {'limit': config.SHOPER_LIMIT, 'page': page}
             response = self._handle_request('GET', url, params=params)
             
             if response.status_code != 200:
@@ -120,7 +122,7 @@ class ShoperAPIClient:
 
         print("Downloading all attribute groups.")
         while True:
-            params = {'limit': 50, 'page': page}
+            params = {'limit': config.SHOPER_LIMIT, 'page': page}
             response = self._handle_request('GET', url, params=params)
             data = response.json()
             number_of_pages = data['pages']
@@ -148,7 +150,7 @@ class ShoperAPIClient:
 
         print("Downloading all attributes.")
         while True:
-            params = {'limit': 50, 'page': page}
+            params = {'limit': config.SHOPER_LIMIT, 'page': page}
             response = self._handle_request('GET', url, params=params)
             data = response.json()
             number_of_pages = data['pages']
@@ -176,7 +178,7 @@ class ShoperAPIClient:
 
         print("Downloading all categories.")
         while True:
-            params = {'limit': 50, 'page': page}
+            params = {'limit': config.SHOPER_LIMIT, 'page': page}
             response = self._handle_request('GET', url, params=params)
             data = response.json()
             number_of_pages = data['pages']
@@ -199,16 +201,26 @@ class ShoperAPIClient:
     
     def create_a_product(self, product_id, outlet_code, damage_type):
         url = f'{self.site_url}/webapi/rest/products'
+        photo_url = f"{self.site_url}/webapi/rest/product-images"
+
         product = self.get_a_single_product(product_id)
 
-        final_product = shoper_data_transform.transform_offer_to_product(product, outlet_code, damage_type)
+        barcode = { 'ean': product['code'] }
 
+        # Create a product
+        final_product = shoper_data_transform.transform_offer_to_product(product, outlet_code, damage_type)
         response = self._handle_request('POST', url, json=final_product)
         final_product_id = response.json()
         print(f'{response}: {final_product_id}')
 
+        # Try to add a barcode to the product
+        try:
+            response = self._handle_request('PUT', url, params=barcode)
+        except Exception as e:
+            print(f'An error with barcode occured in product {product_id} - {barcode}: {e}')
+
+        # Add images to the product
         final_product_photos = shoper_data_transform.transform_offer_photos(product, final_product_id)
-        photo_url = f"{self.site_url}/webapi/rest/product-images"
 
         for photo in final_product_photos:
             

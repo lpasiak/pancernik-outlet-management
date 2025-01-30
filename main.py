@@ -1,14 +1,14 @@
 from shoper_connection import ShoperAPIClient
 from gsheets_connection import GSheetsClient
 import os
-from config import config
+import config
 
 if __name__ == "__main__":
 
     shoper_client = ShoperAPIClient(
-        site_url=os.environ.get(f'SHOPERSITE_{config['site']}'),
-        login=os.environ.get(f'LOGIN_{config['site']}'),
-        password=os.environ.get(f'PASSWORD_{config['site']}')
+        site_url=os.environ.get(f'SHOPERSITE_{config.SITE}'),
+        login=os.environ.get(f'LOGIN_{config.SITE}'),
+        password=os.environ.get(f'PASSWORD_{config.SITE}')
     )
 
     gsheets_client = GSheetsClient(
@@ -27,7 +27,10 @@ if __name__ == "__main__":
         # shoper_client.get_limited_products(3)
         # shoper_client.create_a_product(10744, 'OUTLECIK', 'USZ')
         # x = shoper_client.get_a_single_product(10744)
+        shoper_client.get_all_attribute_groups()
         shoper_client.get_all_attributes()
+        shoper_client.get_all_categories()
+        shoper_client.get_all_products()
 
 
     except Exception as e:
