@@ -25,8 +25,12 @@ if __name__ == "__main__":
 
         # data = gsheets_client.select_offers_ready_to_publish()
         # shoper_client.get_limited_products(3)
-        shoper_client.create_a_product(10744, 'OUTLET', 'USZ')
-        # x = shoper_client.get_a_single_product(10744)
+        shoper_client.create_a_product(33, 'OUTLET_213722', 'USZ')
+        # x = shoper_client.get_a_single_product(81740)
+        # print(x)
+        # shoper_client.get_all_products()
+        # x = shoper_client.get_all_attribute_groups()
+        # print(x)
 
 
     except Exception as e:

@@ -1,6 +1,7 @@
 import os, random
 from data import info
 import config
+import json
 
 def transform_offer_to_product(source_product, outlet_code, damage_type):
     """Transforms a downloaded Shoper offer into a ready-to-upload product."""
@@ -12,8 +13,7 @@ def transform_offer_to_product(source_product, outlet_code, damage_type):
     product_description_short = info.damage_types_short[damage_type]
 
     outlet_price = set_outlet_price(source_product)
-    attributes = source_product['attributes']
-    # attributes = change_outlet_attributes(source_attributes)
+    attributes = transform_attributes(source_product['attributes'])
 
     tags = [6] if config.SITE == 'MAIN' else [1]
     
@@ -46,7 +46,6 @@ def transform_offer_to_product(source_product, outlet_code, damage_type):
         },
         'tax_id': source_product['tax_id'],
         'unit_id': source_product['unit_id'],
-        'related': source_product['related'],
         'vol_weight': source_product['vol_weight'],
         'currency_id': source_product['currency_id'],
         'gauge_id': source_product['gauge_id'],
@@ -56,8 +55,10 @@ def transform_offer_to_product(source_product, outlet_code, damage_type):
         'type': source_product['type'],
         'safety_information': source_product['safety_information'],
         'feeds_excludes': source_product['feeds_excludes'],
-        # 'attributes': attributes,
+        'attributes': attributes
     }
+
+    # print("Final product JSON:", json.dumps(final_product, indent=4, ensure_ascii=False))
 
     return final_product
 
@@ -70,6 +71,7 @@ def set_outlet_price(source_product):
 
     price = float(price) * 0.8
     return price
+
 
 def transform_offer_photos(source_product, new_product_id):
 
@@ -94,11 +96,18 @@ def transform_offer_photos(source_product, new_product_id):
 
     return final_images
 
-def translate_attribute_group_ids():
-    pass
+def transform_attributes(product_attribute_dict):
 
-def translate_attribute_ids():
-    pass
+    attribute_dict = {}
+
+    for group, attributes in product_attribute_dict.items():
+        if isinstance(attributes, dict):
+            for key, value in attributes.items():
+                attribute_dict[key] = value
+    
+
+    return attribute_dict
+
 
 # def select_additional_outlet_category(attributes):
 
