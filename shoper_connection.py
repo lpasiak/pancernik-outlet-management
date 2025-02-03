@@ -200,50 +200,77 @@ class ShoperAPIClient:
         return df
     
     def create_a_product(self, product_id, outlet_code, damage_type):
-        url = f'{self.site_url}/webapi/rest/products'
-        photo_url = f"{self.site_url}/webapi/rest/product-images"
+        """Creates a product in Shoper API, then updates barcode, related products, and images separately."""
+        
+        # ✅ Step 1: Fetch source product data
+        try:
+            product = self.get_a_single_product(product_id)
+        except Exception as e:
+            print(f"❌ Error fetching product {product_id}: {e}")
+            return None
+        
+        # ✅ Step 2: Extract barcode and related products
+        barcode = {'ean': str(product['code'])}
+        related_products = {'related': product.get('related', [])}
 
-        product = self.get_a_single_product(product_id)
-        barcode = { 'ean': str(product['code']) }
-        related_products = { 'related': product['related'] }
-
-        # Create a product
+        # ✅ Step 3: Transform product for API upload
         final_product = shoper_data_transform.transform_offer_to_product(product, outlet_code, damage_type)
-        response = self._handle_request('POST', url, json=final_product)
-        print(f"Response: {response.status_code}, {response.text}")
 
-        final_product_id = response.json()
+        # ✅ Step 4: Send POST request to create the product
+        url = f'{self.site_url}/webapi/rest/products'
+        try:
+            response = self._handle_request('POST', url, json=final_product)
+            response_data = response.json()
+
+            if response.status_code != 200:
+                print(f"❌ Failed to create product. API response: {response.text}")
+                return None
+            
+            final_product_id = response_data # Ensure we get the ID
+            if not final_product_id:
+                print("❌ Product creation response missing product ID.")
+                return None
+            
+            print(f"✅ Product {barcode['ean']} created with ID: {final_product_id}")
+
+        except Exception as e:
+            print(f"❌ Error creating product {product_id}: {e}")
+            return None
+
+        # ✅ Step 5: Update barcode
         update_product_url = f'{self.site_url}/webapi/rest/products/{final_product_id}'
-
-        print(f"Product {barcode['ean']} with ID: {final_product_id} created.")
-
-        # Try to add a barcode to the product (don't add if it's faulty)
         try:
             response = self._handle_request('PUT', update_product_url, json=barcode)
             if response.status_code == 200:
-                print(f"{barcode['ean']} barcode added to product {final_product_id}")
+                print(f"✅ Barcode {barcode['ean']} added to product {final_product_id}")
             else:
-                print(f'Failed to upload barcode. {response.json}')
+                print(f"❌ Failed to upload barcode. API Response: {response.text}")
         except Exception as e:
-            print(f"An error with barcode occured in product {final_product_id} - {barcode['ean']}: {e}")
+            print(f"❌ Error updating barcode for product {final_product_id}: {e}")
 
-        # Update related products
-        try:
-            response = self._handle_request('PUT', update_product_url, json=related_products)
-            if response.status_code == 200:
-                print(f"Related products in {final_product_id} set to {related_products['related']}")
-            else:
-                print(f'Failed to upload related products. {response.json}')
-        except Exception as e:
-            print(f"An error with related products occured in product {final_product_id} - {related_products['related']}: {e}")
+        # ✅ Step 6: Update related products
+        if related_products['related']:
+            try:
+                response = self._handle_request('PUT', update_product_url, json=related_products)
+                if response.status_code == 200:
+                    print(f"✅ Related products updated for {final_product_id}: {related_products['related']}")
+                else:
+                    print(f"❌ Failed to update related products. API Response: {response.text}")
+            except Exception as e:
+                print(f"❌ Error updating related products for {final_product_id}: {e}")
 
-        # Add images to the product
+        # ✅ Step 7: Upload images
         final_product_photos = shoper_data_transform.transform_offer_photos(product, final_product_id)
+        photo_url = f"{self.site_url}/webapi/rest/product-images"
 
         for photo in final_product_photos:
-            
-            response = self._handle_request('POST', photo_url, json=photo)
-            if response.status_code == 200:
-                print(f"Uploaded image {photo['order']} succesfully!")
-            else:
-                print(f"Failed to upload image {photo['order']}. {response.text}")
+            try:
+                response = self._handle_request('POST', photo_url, json=photo)
+                if response.status_code == 200:
+                    print(f"✅ Uploaded image {photo['order']} successfully!")
+                else:
+                    print(f"❌ Failed to upload image {photo['order']}. API Response: {response.text}")
+            except Exception as e:
+                print(f"❌ Error uploading image {photo['order']} for product {final_product_id}: {e}")
+
+        return final_product_id

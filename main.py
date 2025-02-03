@@ -25,7 +25,7 @@ if __name__ == "__main__":
 
         # data = gsheets_client.select_offers_ready_to_publish()
         # shoper_client.get_limited_products(3)
-        shoper_client.create_a_product(33, 'OUTLET_213722', 'USZ')
+        shoper_client.create_a_product(81652, 'OUTLET_XDDD', 'USZ')
         # x = shoper_client.get_a_single_product(81740)
         # print(x)
         # shoper_client.get_all_products()

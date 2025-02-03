@@ -9,12 +9,8 @@ def transform_offer_to_product(source_product, outlet_code, damage_type):
     outlet_description = info.damage_types_long[damage_type]
     source_description = source_product["translations"]["pl_PL"]["description"]
     product_description = outlet_description + source_description
-
     product_description_short = info.damage_types_short[damage_type]
-
     outlet_price = set_outlet_price(source_product)
-    attributes = transform_attributes(source_product['attributes'])
-
     tags = [6] if config.SITE == 'MAIN' else [1]
     
     final_product = {
@@ -55,10 +51,12 @@ def transform_offer_to_product(source_product, outlet_code, damage_type):
         'type': source_product['type'],
         'safety_information': source_product['safety_information'],
         'feeds_excludes': source_product['feeds_excludes'],
-        'attributes': attributes
     }
 
-    # print("Final product JSON:", json.dumps(final_product, indent=4, ensure_ascii=False))
+    if source_product['attributes'] != []:
+        final_product['attributes'] = transform_attributes(source_product['attributes'])
+
+    print("Final product JSON:", json.dumps(final_product, indent=4, ensure_ascii=False))
 
     return final_product
 
@@ -104,10 +102,12 @@ def transform_attributes(product_attribute_dict):
         if isinstance(attributes, dict):
             for key, value in attributes.items():
                 attribute_dict[key] = value
+
+    if config.SITE == 'MAIN':
+        attribute_dict['1402'] = ''     # _outlet
+        attribute_dict['1538'] = 'Tak'  # Outlet
     
-
     return attribute_dict
-
 
 # def select_additional_outlet_category(attributes):
 
@@ -135,18 +135,3 @@ def transform_attributes(product_attribute_dict):
 #         'Akcesoria rowerowe': 7546,
 #         'Selfie-Stick': 7548
 #     }
-
-# def change_outlet_attributes(attributes):
-
-#     if 577 in attributes and 1402 in attributes[577]:
-#         attributes[577][1402] = ''
-#     else:
-#         print("Warning: attributes[577][1402] not found!")
-
-#     if 593 in attributes and 1538 in attributes[593]:
-#         attributes[593][1538] = 'Tak'
-#     else:
-#         print("Warning: attributes[593][1538] not found!")
-
-#     return attributes
-
