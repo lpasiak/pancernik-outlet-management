@@ -23,26 +23,26 @@ if __name__ == "__main__":
         shoper_client.connect()
         gsheets_client.connect()
 
-
-
         all_products = gsheets_client.select_offers_ready_to_publish()
+        products_to_create = gsheets_client.get_data()
         print(all_products)
 
         for index, row in all_products.iterrows():
-            shoper_client.create_a_product()
 
+            product_code = row['SKU']
+            product_ean = row['EAN']
+            damage_type = row['Uszkodzenie']
 
+            x = shoper_client.create_a_product(
+                product_code = product_ean,
+                outlet_code = product_code,
+                damage_type = damage_type)
+            
+            print(x)
 
-        # data = gsheets_client.select_offers_ready_to_publish()
-        # print(data)
-        # shoper_client.get_limited_products(3)
-        # shoper_client.create_a_product(81652, 'OUTLET_XDDD', 'USZ')
-        # x = shoper_client.get_a_single_product(81740)
-        # print(x)
-        # shoper_client.get_all_products()
-        # x = shoper_client.get_all_attribute_groups()
-        # print(x)
+        # TODO: Update dataframe
 
+        # Paste the entire dataframe
 
     except Exception as e:
         print(f"Error: {e}")

@@ -56,7 +56,7 @@ def transform_offer_to_product(source_product, outlet_code, damage_type):
     if source_product['attributes'] != []:
         final_product['attributes'] = transform_attributes(source_product['attributes'])
 
-    print("Final product JSON:", json.dumps(final_product, indent=4, ensure_ascii=False))
+    # print("Final product JSON:", json.dumps(final_product, indent=4, ensure_ascii=False))
 
     return final_product
 
