@@ -13,7 +13,7 @@ if __name__ == "__main__":
 
     gsheets_client = GSheetsClient(
         credentials=os.path.join('credentials', 'gsheets_credentials.json'),
-        sheet_id=os.environ.get('SHEET_ID'),
+        sheet_id=os.environ.get(f'SHEET_ID_{config.SHEET}'),
         sheet_name=config.SHEET_NAME
     )
 
@@ -23,8 +23,18 @@ if __name__ == "__main__":
         shoper_client.connect()
         gsheets_client.connect()
 
-        data = gsheets_client.select_offers_ready_to_publish()
-        print(data)
+
+
+        all_products = gsheets_client.select_offers_ready_to_publish()
+        print(all_products)
+
+        for index, row in all_products.iterrows():
+            shoper_client.create_a_product()
+
+
+
+        # data = gsheets_client.select_offers_ready_to_publish()
+        # print(data)
         # shoper_client.get_limited_products(3)
         # shoper_client.create_a_product(81652, 'OUTLET_XDDD', 'USZ')
         # x = shoper_client.get_a_single_product(81740)

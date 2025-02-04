@@ -6,4 +6,5 @@ SITE = 'TEST'
 SHOPER_LIMIT = 50
 
 # Google Sheet name
-SHEET_NAME = 'Test'
+SHEET = 'TEST'
+SHEET_NAME = 'Outlety'
