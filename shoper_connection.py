@@ -114,6 +114,29 @@ class ShoperAPIClient:
         product['img'] = product_photos
 
         return product
+    
+    def get_a_single_product_by_code(self, product_code):
+        url = f'{self.site_url}/webapi/rest/products'
+        photo_url = f'{self.site_url}/webapi/rest/product-images'
+
+        product_filter = {
+            "filters": json.dumps({"stock.code": product_code})
+        }
+
+        response = self._handle_request('GET', url, params=product_filter)
+        product = response.json()['list'][0]
+        product_id = product['product_id']
+
+        photo_filter = {
+            "filters": json.dumps({"product_id": product_id}),
+            "limit": 50
+        }
+
+        photo_response = self._handle_request('GET', photo_url, params=photo_filter)
+        product_photos = photo_response.json()['list']
+        product['img'] = product_photos
+        
+        return product
 
     def get_all_attribute_groups(self):
         attribute_groups = []
@@ -199,12 +222,13 @@ class ShoperAPIClient:
         df.to_excel(os.path.join(self.sheets_dir, 'shoper_all_categories.xlsx'), index=False)
         return df
     
-    def create_a_product(self, product_id, outlet_code, damage_type):
+    def create_a_product(self, product_code, outlet_code, damage_type):
         """Creates a product in Shoper API, then updates barcode, related products, and images separately."""
         
         # ✅ Step 1: Fetch source product data
         try:
-            product = self.get_a_single_product(product_id)
+            product = self.get_a_single_product_by_code(product_code)
+            product_id = product['product_id']
         except Exception as e:
             print(f"❌ Error fetching product {product_id}: {e}")
             return None
