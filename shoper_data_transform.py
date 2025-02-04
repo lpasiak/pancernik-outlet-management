@@ -1,7 +1,6 @@
 import os, random
 from data import info
 import config
-import json
 
 def transform_offer_to_product(source_product, outlet_code, damage_type):
     """Transforms a downloaded Shoper offer into a ready-to-upload product."""
@@ -12,11 +11,12 @@ def transform_offer_to_product(source_product, outlet_code, damage_type):
     product_description_short = info.damage_types_short[damage_type]
     outlet_price = set_outlet_price(source_product)
     tags = [6] if config.SITE == 'MAIN' else [1]
-    
+    category_list = additional_outlet_category(source_product['attributes'], source_product['categories'])
+
     final_product = {
         'producer_id': source_product['producer_id'],
         'category_id' : source_product['category_id'],
-        'categories': source_product['categories'],
+        'categories': category_list,
         'code': outlet_code,
         'additional_producer': source_product.get('additional_producer', ''),
         'pkwiu': source_product['pkwiu'],
@@ -109,29 +109,47 @@ def transform_attributes(product_attribute_dict):
     
     return attribute_dict
 
-# def select_additional_outlet_category(attributes):
+def additional_outlet_category(product_attribute_dict, categories):
 
-#     # Select 'product type' attribute by ID
-#     product_type = attributes.get(550, {}).get(1370, None)
+    if product_attribute_dict != []:
+
+        if config.SITE == 'MAIN':
+            product_type = product_attribute_dict['550']['1370']
+        elif config.SITE == 'TEST':
+            product_type = product_attribute_dict['8']['28']
+
     
-#     if product_type is None:
-#         print("Warning: Product type attribute (550, 1370) not found!")
-#         return None
+    if config.SITE == 'MAIN':
+        product_type = product_type.lower()
 
-#     category_id = {
-#         'Outlet': 7525,
-#         'Słuchawki': 7611,
-#         'Pasek do smartwatcha': 7612,
-#         'Adapter': 7547,
-#         'Ładowarka sieciowa': 7537,
-#         'Ładowarka samochodowa': 7538,
-#         'Ładowarka indukcyjna': 7539,
-#         'Uchwyt do telefonu': 7540, #???
-#         'Powerbank': 7541,
-#         'Kabel': 7542,
-#         'Listwa zasilająca': 7543,
-#         'Rysik': 7544,
-#         'Obiektyw do telefonu': 7545,
-#         'Akcesoria rowerowe': 7546,
-#         'Selfie-Stick': 7548
-#     }
+        category_mapping = {
+            'słuchawki': 7611,
+            'pasek do smartwatcha': 7612,
+            'adapter': 7547,
+            'ładowarka sieciowa': 7537,
+            'ładowarka samochodowa': 7538,
+            'ładowarka indukcyjna': 7539,
+            'powerbank': 7541,
+            'kabel': 7542,
+            'listwa zasilająca': 7543,
+            'rysik': 7544,
+            'obiektyw do telefonu': 7545,
+            'akcesoria rowerowe': 7546,
+            'selfie-stick': 7548
+        }
+
+        outlet_category = category_mapping.get(product_type)
+
+        if outlet_category is None:
+            if "uchwyt" in product_type and "telefon" in product_type:
+                outlet_category = 7540
+            else:
+                outlet_category = 7525
+
+        print(f"Selected Category: {outlet_category}")  # ✅ Debugging output
+
+    elif config.SITE == 'TEST':
+        outlet_category = 1322
+    
+    print(categories + [outlet_category])
+    return categories + [outlet_category]

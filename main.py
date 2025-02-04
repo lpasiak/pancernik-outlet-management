@@ -25,20 +25,31 @@ if __name__ == "__main__":
 
         all_products = gsheets_client.select_offers_ready_to_publish()
         products_to_create = gsheets_client.get_data()
-        print(all_products)
 
+        all_products = all_products.head(5)
+
+        # print(all_products)
+
+        counter_product = all_products.shape[0]
+        counter_product_created = 0
+        
         for index, row in all_products.iterrows():
 
             product_code = row['SKU']
             product_ean = row['EAN']
             damage_type = row['Uszkodzenie']
 
-            x = shoper_client.create_a_product(
+            product_id = shoper_client.create_a_product(
                 product_code = product_ean,
                 outlet_code = product_code,
                 damage_type = damage_type)
             
-            print(x)
+            if isinstance(product_id, int):
+                counter_product_created += 1
+
+            print("-----------------------------------")
+            print(f"{counter_product_created}/{counter_product} Products created")
+            print("-----------------------------------")
 
         # TODO: Update dataframe
 
