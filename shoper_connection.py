@@ -27,7 +27,7 @@ class ShoperAPIClient:
         if response.status_code == 200:
             self.token = response.json().get('access_token')
             self.session.headers.update({'Authorization': f'Bearer {self.token}'})
-            print("Authentication successful.")
+            print("Shoper Authentication successful.")
         else:
             raise Exception(f"Authentication failed: {response.status_code}, {response.text}")
 

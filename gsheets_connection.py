@@ -32,7 +32,7 @@ class GSheetsClient:
         self.gc = gspread.service_account(filename=self.credentials_path)
         self.sheet = self.gc.open_by_key(self.sheet_id)
 
-        print("Connected to Google Sheets successfully.")
+        print("Google Authentication successful.")
 
     def get_data(self):
         """Get data from a Google Sheets worksheet as a pandas DataFrame."""
