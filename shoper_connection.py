@@ -238,7 +238,7 @@ class ShoperAPIClient:
         related_products = {'related': product.get('related', [])}
 
         # Step 3: Transform product for API upload
-        final_product = shoper_data_transform.transform_offer_to_product(product, outlet_code, damage_type)
+        final_product, product_url = shoper_data_transform.transform_offer_to_product(product, outlet_code, damage_type)
 
         # Step 4: Send POST request to create the product
         url = f'{self.site_url}/webapi/rest/products'
@@ -302,4 +302,4 @@ class ShoperAPIClient:
             except Exception as e:
                 print(f"X | Error uploading image {photo['order']} for product {final_product_id}: {e}")
 
-        return final_product_id
+        return final_product_id, product_url

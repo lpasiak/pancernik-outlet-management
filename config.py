@@ -1,6 +1,6 @@
 
 # SITE can be either TEST (development) or MAIN (deployment)
-SITE = 'MAIN' 
+SITE = 'TEST' 
 
 # LIMIT for API requests
 SHOPER_LIMIT = 50

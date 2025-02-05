@@ -12,7 +12,8 @@ def transform_offer_to_product(source_product, outlet_code, damage_type):
     outlet_price = set_outlet_price(source_product)
     tags = [6] if config.SITE == 'MAIN' else [1]
     category_list = additional_outlet_category(source_product['attributes'], source_product['categories'])
-
+    product_url = source_product['translations']['pl_PL'].get('seo_url', '') + '-outlet-' + str(random.randint(1, 9999))
+    
     final_product = {
         'producer_id': source_product['producer_id'],
         'category_id' : source_product['category_id'],
@@ -27,7 +28,7 @@ def transform_offer_to_product(source_product, outlet_code, damage_type):
                 'description': product_description,
                 'active': '1',
                 'order': random.randint(1,5),
-                'seo_url': source_product['translations']['pl_PL'].get('seo_url', '') + '-outlet-' + str(random.randint(1, 9999))
+                'seo_url': product_url,
             }
         },
         'stock': {
@@ -58,7 +59,7 @@ def transform_offer_to_product(source_product, outlet_code, damage_type):
 
     # print("Final product JSON:", json.dumps(final_product, indent=4, ensure_ascii=False))
 
-    return final_product
+    return final_product, product_url
 
 def set_outlet_price(source_product):
 

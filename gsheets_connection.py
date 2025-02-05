@@ -38,7 +38,7 @@ class GSheetsClient:
         """Get data from a Google Sheets worksheet as a pandas DataFrame."""
 
         worksheet = self.sheet.worksheet(self.sheet_name)
-        data = worksheet.get_all_values()
+        data = worksheet.get_all_records()
         all_offers = pd.DataFrame(data[1:], columns=data[0])  # First row as header
         all_offers.to_excel(os.path.join(self.sheets_dir, 'google_sheets_all.xlsx'), index=False)
         
