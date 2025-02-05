@@ -306,7 +306,11 @@ class ShoperAPIClient:
 
         # Step 8: Upload a url
 
-        product_seo = f'{product_seo}-{final_product_id}'
+        if product_seo != None and product_seo != '':
+            product_seo = f'{product_seo}-outlet-{final_product_id}'
+        else:
+            product_seo = f'outlet-{final_product_id}'
+
         product_seo_json = { 'translations': { 'pl_PL': { 'seo_url': product_seo }}}
 
         try:

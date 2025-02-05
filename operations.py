@@ -37,11 +37,9 @@ def create_shoper_offers(shoper_client, gsheets_client):
 
                 google_sheets_row = all_products.loc[all_products['SKU'] == product_code, 'Row Number'].values
 
-
                 if isinstance(product_id, int):
                     counter_product_created += 1
                     created = True
-
 
                     if len(google_sheets_row) > 0:
                         row_number = google_sheets_row[0]
@@ -61,7 +59,6 @@ def create_shoper_offers(shoper_client, gsheets_client):
                 
         if sheet_updates:
             gsheets_client.update_rows(sheet_updates)
-
 
     except Exception as e:
         print(f"Error: {e}")

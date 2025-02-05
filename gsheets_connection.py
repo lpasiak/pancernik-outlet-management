@@ -55,7 +55,7 @@ class GSheetsClient:
         """Get data of all the items ready to publish based on 'Wystawione' column"""
         all_offers = self.get_data(include_row_numbers=True)
 
-        selected_offers = all_offers[all_offers["Wystawione"] == 'FALSE']
+        selected_offers = all_offers[all_offers["Wystawione"] != 'TRUE']
         selected_offers.to_excel(os.path.join(self.sheets_dir, 'google_sheets_to_publish.xlsx'), index=False)
         
         print('Selected offers ready to publish.')
