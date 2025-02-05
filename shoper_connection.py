@@ -3,6 +3,7 @@ import requests, time, os, json
 from pathlib import Path
 import shoper_data_transform
 import config
+from gsheets_connection import GSheetsClient
 
 class ShoperAPIClient:
 
@@ -239,7 +240,7 @@ class ShoperAPIClient:
         related_products = {'related': product.get('related', [])}
 
         # Step 3: Transform product for API upload
-        final_product, product_url = shoper_data_transform.transform_offer_to_product(product, outlet_code, damage_type)
+        final_product, product_seo = shoper_data_transform.transform_offer_to_product(product, outlet_code, damage_type)
 
         # Step 4: Send POST request to create the product
         url = f'{self.site_url}/webapi/rest/products'
@@ -303,4 +304,21 @@ class ShoperAPIClient:
             except Exception as e:
                 print(f"X | Error uploading image {photo['order']} for product {final_product_id}: {e}")
 
-        return final_product_id, product_url
+        # Step 8: Upload a url
+
+        product_seo = f'{product_seo}-{final_product_id}'
+        product_seo_json = { 'translations': { 'pl_PL': { 'seo_url': product_seo }}}
+
+        try:
+            response = self._handle_request('PUT', update_product_url, json=product_seo_json)
+
+            if response.status_code == 200:
+                print(f"✓ | Uploaded url successfully!")
+
+            else:
+                print(f"X | Failed to upload a url. API Response: {response.text}")
+                    
+        except Exception as e:
+            print(f"X | Error uploading a url for product {final_product_id}: {e}")
+
+        return final_product_id, product_seo
