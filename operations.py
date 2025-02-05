@@ -7,10 +7,6 @@ def create_shoper_offers(shoper_client, gsheets_client):
 
     try:
 
-        # Authenticate with the Shoper API
-        shoper_client.connect()
-        gsheets_client.connect()
-
         all_products = gsheets_client.select_offers_ready_to_publish()
 
         # print(all_products)

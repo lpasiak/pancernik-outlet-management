@@ -12,10 +12,25 @@ if __name__ == "__main__":
         password=os.environ.get(f'PASSWORD_{config.SITE}')
     )
 
-    gsheets_client = GSheetsClient(
+    gsheets_client_main = GSheetsClient(
         credentials=os.path.join('credentials', 'gsheets_credentials.json'),
         sheet_id=os.environ.get(f'SHEET_ID_{config.SHEET}'),
         sheet_name=config.SHEET_NAME
     )
 
-    operations.create_shoper_offers(shoper_client, gsheets_client)
+    shoper_client.connect()
+    gsheets_client_main.connect()
+
+    # operations.create_shoper_offers(shoper_client, gsheets_client)
+
+
+# TODO: Attributes uploader
+
+    all_products = gsheets_client_main.get_data(include_row_numbers=True)
+    print(all_products)
+
+    # MAIN attribute number 577 - 1402
+    # TEST attribute number 9 - 29
+
+# TODO: 
+# TODO: Price checker

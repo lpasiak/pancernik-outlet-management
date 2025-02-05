@@ -3,7 +3,6 @@ import requests, time, os, json
 from pathlib import Path
 import shoper_data_transform
 import config
-from gsheets_connection import GSheetsClient
 
 class ShoperAPIClient:
 
