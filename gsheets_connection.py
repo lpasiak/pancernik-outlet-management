@@ -33,33 +33,48 @@ class GSheetsClient:
         self.sheet = self.gc.open_by_key(self.sheet_id)
 
         print("Google Authentication successful.")
+        print("-----------------------------------")
 
-    def get_data(self):
+    def get_data(self, include_row_numbers=False):
         """Get data from a Google Sheets worksheet as a pandas DataFrame."""
 
         worksheet = self.sheet.worksheet(self.sheet_name)
-        data = worksheet.get_all_records()
-        all_offers = pd.DataFrame(data[1:], columns=data[0])  # First row as header
-        all_offers.to_excel(os.path.join(self.sheets_dir, 'google_sheets_all.xlsx'), index=False)
+        data = worksheet.get_all_values()
         
+        df = pd.DataFrame(data[1:], columns=data[0])  # First row as header
+        df.to_excel(os.path.join(self.sheets_dir, 'google_sheets_all.xlsx'), index=False)
+        
+        if include_row_numbers:
+            df.insert(0, 'Row Number', range(2, len(df) + 2)) # GSheets rows start at 2
+
         print('Downloaded all the data from Google Sheets.')
-        return all_offers
+        print("-----------------------------------")
+        return df
     
     def select_offers_ready_to_publish(self):
         """Get data of all the items ready to publish based on 'Wystawione' column"""
-        all_offers = self.get_data()
+        all_offers = self.get_data(include_row_numbers=True)
 
         selected_offers = all_offers[all_offers["Wystawione"] == 'FALSE']
         selected_offers.to_excel(os.path.join(self.sheets_dir, 'google_sheets_to_publish.xlsx'), index=False)
         
         print('Selected offers ready to publish.')
+        print("-----------------------------------")
         return selected_offers
 
-    def update_data(self, dataframe):
-        """Update a worksheet with a pandas DataFrame."""
-        
+    def update_rows(self, updates):
+
         worksheet = self.sheet.worksheet(self.sheet_name)
-        worksheet.clear()
-        worksheet.update([dataframe.columns.values.tolist()] + dataframe.values.tolist())
-        
-        print(f"Updated {self.sheet_name} with new data.")
+
+        batch_data = []
+    
+        for row_number, created, date_created, product_url, product_id in updates:
+            batch_data.append({
+                'range': f"F{row_number}:I{row_number}",
+                'values': [[created, date_created, product_url, product_id]]
+            })
+
+        # Perform batch update
+        worksheet.batch_update(batch_data)
+
+        print(f"✓ | Successfully updated {len(updates)} rows in Google Sheets.")

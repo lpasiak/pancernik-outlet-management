@@ -152,5 +152,4 @@ def additional_outlet_category(product_attribute_dict, categories):
     elif config.SITE == 'TEST':
         outlet_category = 1322
     
-    print(categories + [outlet_category])
     return categories + [outlet_category]
