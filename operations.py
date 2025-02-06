@@ -8,7 +8,7 @@ def create_shoper_offers(shoper_client, gsheets_client):
     try:
 
         all_products = gsheets_client.select_offers_ready_to_publish()
-        all_products = all_products.head(10)
+        all_products = all_products.head(500)
 
         counter_product = all_products.shape[0]
         counter_product_created = 0
@@ -28,7 +28,7 @@ def create_shoper_offers(shoper_client, gsheets_client):
                     outlet_code = product_code,
                     damage_type = damage_type)
             
-                product_url = f'{os.getenv(f"SHOPERSITE_{config.SITE}")}{product_url}'
+                product_url = f'{os.getenv(f"SHOPERSITE_{config.SITE}")}/{product_url}'
 
                 google_sheets_row = all_products.loc[all_products['SKU'] == product_code, 'Row Number'].values
 
