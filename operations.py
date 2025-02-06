@@ -2,15 +2,13 @@
 from datetime import datetime
 import os
 import config
-import pandas
 
 def create_shoper_offers(shoper_client, gsheets_client):
 
     try:
 
         all_products = gsheets_client.select_offers_ready_to_publish()
-
-        # print(all_products)
+        all_products = all_products.head(10)
 
         counter_product = all_products.shape[0]
         counter_product_created = 0
@@ -64,9 +62,6 @@ def set_main_product_attributes(shoper_client, gsheets_client):
 
     all_products = gsheets_client.get_data(include_row_numbers=True)
     single_ean_products = all_products.drop_duplicates(subset=['EAN'], keep='first').copy()
-
-    print(all_products)
-    print(single_ean_products)
 
     products = {}
 

@@ -342,9 +342,6 @@ class ShoperAPIClient:
                 product_attribute_group = self.get_attribute_group_info(attribute_group)
                 attribute_group_categories = product_attribute_group['categories']
                 attributes_to_upload = {'attributes': {attribute_id: attribute_value}}
-
-                print('category id: ', product_category_id)
-                print('attr group categories: ', attribute_group_categories)
                 
                 if product_category_id not in attribute_group_categories:
                     new_attribute_group_categories = attribute_group_categories + [product_category_id]

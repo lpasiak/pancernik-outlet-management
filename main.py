@@ -39,4 +39,5 @@ Akcja: '''))
     else:
         print('Nie ma takiego wyboru :/')
 
+
 # TODO: Price checker

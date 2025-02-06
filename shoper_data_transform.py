@@ -35,7 +35,7 @@ def transform_offer_to_product(source_product, outlet_code, damage_type):
             'active': 1,
             'stock': 1,
             'gfx_id': source_product['main_image']['gfx_id'],
-            'availability_id': source_product.get('availability_id', ''),
+            'availability_id': None,
             'delivery_id': 1,
             'weight': 0.2,
             'weight_type': source_product.get('weight_type', ''),
@@ -57,7 +57,7 @@ def transform_offer_to_product(source_product, outlet_code, damage_type):
         final_product['attributes'] = transform_attributes(source_product['attributes'])
 
     # print("Final product JSON:", json.dumps(final_product, indent=4, ensure_ascii=False))
-    print(final_product)
+
     return final_product, product_url
 
 def set_outlet_price(source_product):
