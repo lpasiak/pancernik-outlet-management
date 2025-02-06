@@ -25,9 +25,18 @@ if __name__ == "__main__":
     shoper_client.connect()
     gsheets_client.connect()
 
-    # operations.create_shoper_offers(shoper_client, gsheets_client)
 
-    operations.set_main_product_attributes(shoper_client, gsheets_client)
-
+    action = str(input('''
+Co chcesz zrobić?
+1. Wystawić produkty outletowe
+2. Dopisać atrybuty głównym produktom
+Akcja: '''))
+    
+    if action == '1':
+        operations.create_shoper_offers(shoper_client, gsheets_client)
+    elif action == '2':
+        operations.set_main_product_attributes(shoper_client, gsheets_client)
+    else:
+        print('Nie ma takiego wyboru :/')
 
 # TODO: Price checker
