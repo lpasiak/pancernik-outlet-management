@@ -57,7 +57,7 @@ def transform_offer_to_product(source_product, outlet_code, damage_type):
         final_product['attributes'] = transform_attributes(source_product['attributes'])
 
     # print("Final product JSON:", json.dumps(final_product, indent=4, ensure_ascii=False))
-
+    print(final_product)
     return final_product, product_url
 
 def set_outlet_price(source_product):
@@ -145,8 +145,6 @@ def additional_outlet_category(product_attribute_dict, categories):
                 outlet_category = 7540
             else:
                 outlet_category = 7525
-
-        print(f"Selected Category: {outlet_category}")  # ✅ Debugging output
 
     elif config.SITE == 'TEST':
         outlet_category = 1322

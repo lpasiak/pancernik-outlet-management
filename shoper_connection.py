@@ -325,3 +325,29 @@ class ShoperAPIClient:
             print(f"X | Error uploading a url for product {final_product_id}: {e}")
 
         return final_product_id, product_seo
+
+    def upload_an_attribute_by_code(self, product_code, attribute_id, attribute_value):
+
+        try:
+            product = self.get_a_single_product_by_code(product_code)
+            product_id = product.get('product_id', '')
+            url = f'{self.site_url}webapi/rest/products/{product_id}'
+            print(url)
+
+            attributes_to_upload = {'attributes': {attribute_id: attribute_value}}
+
+            print(attributes_to_upload)
+            
+            try:
+                response = self._handle_request('PUT', url, json=attributes_to_upload)
+
+                if response.status_code == 200:
+                    print(f"✓ | Attributes added to the product {product_code} | {product_id}")
+                else:
+                    print(f"X | Failed to upload attributes. API Response: {response.text}")
+
+            except Exception as e:
+                print(f"X | Error updating attributes to the product {product_code} | {product_id}: {e}")
+
+        except Exception as e:
+            print(f'Error: {e}')

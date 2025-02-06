@@ -61,24 +61,29 @@ def create_shoper_offers(shoper_client, gsheets_client):
         print(f"Error: {e}")
 
 def set_main_product_attributes(shoper_client, gsheets_client):
+
     all_products = gsheets_client.get_data(include_row_numbers=True)
+    single_ean_products = all_products.drop_duplicates(subset=['EAN'], keep='first').copy()
+
     print(all_products)
+    print(single_ean_products)
 
     products = {}
 
-    for index, row in all_products.iterrows():
+    for _, row_single in single_ean_products.iterrows():
         
-        product_ean = row['EAN']
-        outlet_sku = row['SKU']
-        product_id = row['ID Shoper']
+        product_ids_list = []
+        product_ean = row_single['EAN']
 
-        print(outlet_sku, product_ean, product_id)
+        for _, row in all_products.iterrows():
 
+            if product_ean == row['EAN']:
+                product_ids_list.append(row['ID Shoper'])
 
+        product_ids = ', '.join(product_ids_list)
+        products[product_ean] = product_ids
 
+    attribute_id = '1402' if config.SITE == 'MAIN' else '29'
 
-
-    # TODO: Attributes uploader
-
-    # MAIN attribute number 577 - 1402
-    # TEST attribute number 9 - 29
+    for product_ean, attribute_value in products.items():
+        shoper_client.upload_an_attribute_by_code(product_ean, attribute_id, attribute_value)
