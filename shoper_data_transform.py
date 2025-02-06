@@ -79,7 +79,7 @@ def transform_offer_photos(source_product, new_product_id):
     for index, image in enumerate(source_images, start=1):
 
         # Creating a url for an image
-        site_url = f"{os.environ.get(f'SHOPERSITE_{config.SITE}')}"
+        site_url = f"{os.getenv(f'SHOPERSITE_{config.SITE}')}"
         image_id = f"{image['gfx_id']}.{image['extension']}"
 
         image_item = {

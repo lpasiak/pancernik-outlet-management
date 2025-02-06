@@ -2,6 +2,7 @@
 from datetime import datetime
 import os
 import config
+import pandas
 
 def create_shoper_offers(shoper_client, gsheets_client):
 
@@ -58,3 +59,26 @@ def create_shoper_offers(shoper_client, gsheets_client):
 
     except Exception as e:
         print(f"Error: {e}")
+
+def set_main_product_attributes(shoper_client, gsheets_client):
+    all_products = gsheets_client.get_data(include_row_numbers=True)
+    print(all_products)
+
+    products = {}
+
+    for index, row in all_products.iterrows():
+        
+        product_ean = row['EAN']
+        outlet_sku = row['SKU']
+        product_id = row['ID Shoper']
+
+        print(outlet_sku, product_ean, product_id)
+
+
+
+
+
+    # TODO: Attributes uploader
+
+    # MAIN attribute number 577 - 1402
+    # TEST attribute number 9 - 29
