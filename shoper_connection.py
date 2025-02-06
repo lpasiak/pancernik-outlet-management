@@ -397,11 +397,3 @@ class ShoperAPIClient:
             print(f"X | {e}")
         
         return attribute_group_info
-
-
-# attribute group
-
-# attribute current groups
-# attribute group category id list
-
-# category id to append
