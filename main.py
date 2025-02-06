@@ -29,4 +29,5 @@ if __name__ == "__main__":
 
     operations.set_main_product_attributes(shoper_client, gsheets_client)
 
+
 # TODO: Price checker

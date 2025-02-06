@@ -124,21 +124,25 @@ class ShoperAPIClient:
             "filters": json.dumps({"stock.code": product_code})
         }
 
-        response = self._handle_request('GET', url, params=product_filter)
-        product = response.json()['list'][0]
-        product_id = product['product_id']
+        try:
+            response = self._handle_request('GET', url, params=product_filter)
+            product = response.json()['list'][0]
+            product_id = product['product_id']
 
-        photo_filter = {
-            "filters": json.dumps({"product_id": product_id}),
-            "limit": 50
-        }
+            photo_filter = {
+                "filters": json.dumps({"product_id": product_id}),
+                "limit": 50
+            }
 
-        photo_response = self._handle_request('GET', photo_url, params=photo_filter)
-        product_photos = photo_response.json()['list']
-        product['img'] = product_photos
+            photo_response = self._handle_request('GET', photo_url, params=photo_filter)
+            product_photos = photo_response.json()['list']
+            product['img'] = product_photos
+
+            return product
         
-        return product
-
+        except Exception as e:
+            print(f'Product {product_code} doesn\'t exist')
+        
     def get_all_attribute_groups(self):
         attribute_groups = []
         page = 1
@@ -326,28 +330,78 @@ class ShoperAPIClient:
 
         return final_product_id, product_seo
 
-    def upload_an_attribute_by_code(self, product_code, attribute_id, attribute_value):
+    def upload_an_attribute_by_code(self, product_code, attribute_id, attribute_value, attribute_group):
 
         try:
             product = self.get_a_single_product_by_code(product_code)
-            product_id = product.get('product_id', '')
-            url = f'{self.site_url}webapi/rest/products/{product_id}'
-            print(url)
 
-            attributes_to_upload = {'attributes': {attribute_id: attribute_value}}
+            if product != None:
 
-            print(attributes_to_upload)
-            
-            try:
-                response = self._handle_request('PUT', url, json=attributes_to_upload)
+                product_id = product.get('product_id', '')
+                product_category_id = int(product['category_id'])
+                product_attribute_group = self.get_attribute_group_info(attribute_group)
+                attribute_group_categories = product_attribute_group['categories']
+                attributes_to_upload = {'attributes': {attribute_id: attribute_value}}
 
-                if response.status_code == 200:
-                    print(f"✓ | Attributes added to the product {product_code} | {product_id}")
-                else:
-                    print(f"X | Failed to upload attributes. API Response: {response.text}")
+                print('category id: ', product_category_id)
+                print('attr group categories: ', attribute_group_categories)
+                
+                if product_category_id not in attribute_group_categories:
+                    new_attribute_group_categories = attribute_group_categories + [product_category_id]
 
-            except Exception as e:
-                print(f"X | Error updating attributes to the product {product_code} | {product_id}: {e}")
+                    update_attr_group_url = f'{self.site_url}/webapi/rest/attribute-groups/{attribute_group}'
+                    attribute_group_json = {'categories': new_attribute_group_categories}
+
+                    try:
+                        response = self._handle_request('PUT', update_attr_group_url, json=attribute_group_json)
+
+                        if response.status_code == 200:
+                            print(f"✓ | Product category added to the attribute group.")
+                        else:
+                            print(f"X | Failed to upload attributes. API Response: {response.text}")
+
+                    except Exception as e:
+                        print(f"X | Error updating attributes to the product {product_code} | {product_id}: {e}")
+
+                url = f'{self.site_url}webapi/rest/products/{product_id}'
+
+                try:
+                    response = self._handle_request('PUT', url, json=attributes_to_upload)
+
+                    if response.status_code == 200:
+                        print(f"✓ | Attributes added to the product {product_code} | {product_id}")
+                    else:
+                        print(f"X | Failed to upload attributes. API Response: {response.text}")
+
+                except Exception as e:
+                    print(f"X | Error updating attributes to the product {product_code} | {product_id}: {e}")
 
         except Exception as e:
             print(f'Error: {e}')
+
+    # def update_attribute_group_with_categories(self, attribute_group, category_id):
+        
+
+    def get_attribute_group_info(self, attribute_group):
+        
+        url = f'{self.site_url}webapi/rest/attribute-groups/{attribute_group}'
+
+        try:
+            response = self._handle_request('GET', url)
+            
+            if response.status_code == 200:
+                print(f"✓ | Uploaded url successfully!")
+
+                attribute_group_info = response.json()
+        except Exception as e:
+            print(f"X | {e}")
+        
+        return attribute_group_info
+
+
+# attribute group
+
+# attribute current groups
+# attribute group category id list
+
+# category id to append

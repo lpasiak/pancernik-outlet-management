@@ -84,6 +84,11 @@ def set_main_product_attributes(shoper_client, gsheets_client):
         products[product_ean] = product_ids
 
     attribute_id = '1402' if config.SITE == 'MAIN' else '29'
+    attribute_group = '577' if config.SITE == 'MAIN' else '9'
 
     for product_ean, attribute_value in products.items():
-        shoper_client.upload_an_attribute_by_code(product_ean, attribute_id, attribute_value)
+
+        shoper_client.upload_an_attribute_by_code(product_ean, 
+                                                  attribute_id, 
+                                                  attribute_value, 
+                                                  attribute_group)
