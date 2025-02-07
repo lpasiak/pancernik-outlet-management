@@ -378,18 +378,13 @@ class ShoperAPIClient:
         except Exception as e:
             print(f'Error: {e}')
 
-    def get_attribute_group_info(self, attribute_group):
-        
-        url = f'{self.site_url}webapi/rest/attribute-groups/{attribute_group}'
-
+    def get_attribute_group_info(self, group_id):
+        """Get information about a specific attribute group."""
+        url = f"{self.site_url}/webapi/rest/attribute-groups/{group_id}"
         try:
             response = self._handle_request('GET', url)
-            
-            if response.status_code == 200:
-                print(f"✓ | Uploaded url successfully!")
-
-                attribute_group_info = response.json()
-        except Exception as e:
-            print(f"X | {e}")
-        
-        return attribute_group_info
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            print(f"Error getting attribute group info: {str(e)}")
+            raise
