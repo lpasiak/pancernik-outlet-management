@@ -46,7 +46,7 @@ def main():
         operations.create_shoper_offers(shoper_client, gsheets_client)
     elif action == '2':
         operations.update_attribute_group_categories(shoper_client, gsheets_client)
-        # operations.set_main_product_attributes(shoper_client, gsheets_client)
+        operations.set_main_product_attributes(shoper_client, gsheets_client)
     elif action == '3':
         shoper_client.get_all_products()
     elif action == 'q':

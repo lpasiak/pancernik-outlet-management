@@ -115,6 +115,7 @@ def update_attribute_group_categories(shoper_client, gsheets_client):
 
     ATTRIBUTE_IDS = {
             'MAIN': {'id': '1402', 'group': '577'},
+            
             'TEST': {'id': '29', 'group': '9'}
         }
 
@@ -122,21 +123,7 @@ def update_attribute_group_categories(shoper_client, gsheets_client):
     
     try:
         gsheets_categories = gsheets_client.get_all_category_ids()
-        # Add error handling and filtering for the conversion
-        cleaned_categories = []
 
-        #
-        # I need to look into this problem
-        # The IDs are not integers and I need to convert them to integers
-        #
-        
-        for category_id in gsheets_categories:
-            try:
-
-                cleaned_categories.append(int(category_id))
-            except (ValueError, TypeError):
-                print(f"Warning: Skipping invalid category ID: {category_id}")
-        gsheets_categories = cleaned_categories
     except Exception as e:
         print(f"Fatal error in update_attribute_group_categories: {str(e)}")
         raise

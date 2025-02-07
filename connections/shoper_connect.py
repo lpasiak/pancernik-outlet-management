@@ -380,7 +380,8 @@ class ShoperAPIClient:
         
         # Merge lists and remove duplicates using set
         merged_categories = list(set(attribute_categories + category_id_list))
-        print(merged_categories)
+        print(f'Updating {len(merged_categories)} categories to a group {group_id}')
+
         # Update the attribute group with merged categories
         url = f"{self.site_url}/webapi/rest/attribute-groups/{group_id}"
         try:

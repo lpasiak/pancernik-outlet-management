@@ -82,8 +82,12 @@ class GSheetsClient:
     def get_all_category_ids(self):
         """Get all category IDs from the Google Sheets."""
         all_categories = self.get_data(include_row_numbers=True)
-
-        category_ids = all_categories['ID Kategorii'].unique()
+        
+        # Filter out empty values and convert to integers
+        category_ids = all_categories['ID Kategorii'].dropna()  # Remove empty/NaN values
+        category_ids = category_ids[category_ids != '']  # Remove empty strings
+        category_ids = category_ids.astype(int).unique()  # Convert to integers and get unique values
+        
         return category_ids
 
 
