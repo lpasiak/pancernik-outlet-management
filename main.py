@@ -1,5 +1,5 @@
 import operations
-from connections import GSheetsClient, ShoperAPIClient
+from connections import GSheetsClient, ShoperAPIClient 
 from dotenv import load_dotenv
 import os
 import config

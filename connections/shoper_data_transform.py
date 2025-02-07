@@ -72,7 +72,9 @@ def set_outlet_price(source_product):
 
 
 def transform_offer_photos(source_product, new_product_id):
-
+    if not source_product.get('img'):
+        return []
+    
     source_images = source_product['img']
     final_images = []
 
@@ -110,15 +112,20 @@ def transform_attributes(product_attribute_dict):
     return attribute_dict
 
 def additional_outlet_category(product_attribute_dict, categories):
-
-    if product_attribute_dict != []:
-
-        if config.SITE == 'MAIN':
-            product_type = product_attribute_dict['550']['1370']
-        elif config.SITE == 'TEST':
-            product_type = product_attribute_dict['8']['28']
-
+    if not isinstance(categories, list):
+        raise ValueError("Categories must be a list")
     
+    if product_attribute_dict != []:
+        try:
+            if config.SITE == 'MAIN':
+                product_type = product_attribute_dict['550']['1370']
+            elif config.SITE == 'TEST':
+                product_type = product_attribute_dict['8']['28']
+            else:
+                raise ValueError(f"Unknown site configuration: {config.SITE}")
+        except KeyError:
+            product_type = None
+
     if config.SITE == 'MAIN':
         product_type = product_type.lower()
 
