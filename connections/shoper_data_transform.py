@@ -13,6 +13,7 @@ def transform_offer_to_product(source_product, outlet_code, damage_type):
     tags = [6] if config.SITE == 'MAIN' else [1]
     category_list = additional_outlet_category(source_product['attributes'], source_product['categories'])
     product_url = source_product['translations']['pl_PL'].get('seo_url', '')
+    product_category_id = source_product['category_id']
     
     final_product = {
         'producer_id': source_product['producer_id'],
@@ -58,7 +59,7 @@ def transform_offer_to_product(source_product, outlet_code, damage_type):
 
     # print("Final product JSON:", json.dumps(final_product, indent=4, ensure_ascii=False))
 
-    return final_product, product_url
+    return final_product, product_url, product_category_id
 
 def set_outlet_price(source_product):
 

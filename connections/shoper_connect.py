@@ -250,7 +250,7 @@ class ShoperAPIClient:
         related_products = {'related': product.get('related', [])}
 
         # Step 3: Transform product for API upload
-        final_product, product_seo = shoper_data_transform.transform_offer_to_product(product, outlet_code, damage_type)
+        final_product, product_seo, product_category_id = shoper_data_transform.transform_offer_to_product(product, outlet_code, damage_type)
 
         # Step 4: Send POST request to create the product
         url = f'{self.site_url}/webapi/rest/products'
@@ -335,34 +335,16 @@ class ShoperAPIClient:
         except Exception as e:
             print(f"X | Error uploading a url for product {final_product_id}: {e}")
 
-        return final_product_id, product_seo
+        return final_product_id, product_seo, product_category_id
 
-    def upload_an_attribute_by_code(self, product_code, attribute_id, attribute_value, attribute_group):
+    def upload_an_attribute_by_code(self, product_code, attribute_id, attribute_value):
         try:
             product = self.get_a_single_product_by_code(product_code)
             if not product:
                 return
 
             product_id = product.get('product_id', '')
-            product_category_id = int(product['category_id'])
-            product_attribute_group = self.get_attribute_group_info(attribute_group)
-            attribute_group_categories = product_attribute_group['categories']
             attributes_to_upload = {'attributes': {attribute_id: attribute_value}}
-            
-            if product_category_id not in attribute_group_categories:
-                new_attribute_group_categories = attribute_group_categories + [product_category_id]
-
-                update_attr_group_url = f'{self.site_url}/webapi/rest/attribute-groups/{attribute_group}'
-                attribute_group_json = {'categories': new_attribute_group_categories}
-
-                try:
-                    response = self._handle_request('PUT', update_attr_group_url, json=attribute_group_json)
-                    if response.status_code == 200:
-                        print(f"✓ | Product category added to the attribute group.")
-                    else:
-                        print(f"X | Failed to upload attributes. API Response: {response.text}")
-                except Exception as e:
-                    print(f"X | Error updating attributes to the product {product_code} | {product_id}: {e}")
 
             url = f'{self.site_url}/webapi/rest/products/{product_id}'
 
@@ -388,3 +370,24 @@ class ShoperAPIClient:
         except requests.exceptions.RequestException as e:
             print(f"Error getting attribute group info: {str(e)}")
             raise
+        
+    def merge_attribute_group_categories(self, group_id, attribute_categories, category_id_list):
+        """Update attribute group categories by merging existing and new categories."""
+        
+        # Convert to lists if they're numpy arrays
+        attribute_categories = attribute_categories.tolist() if hasattr(attribute_categories, 'tolist') else list(attribute_categories)
+        category_id_list = category_id_list.tolist() if hasattr(category_id_list, 'tolist') else list(category_id_list)
+        
+        # Merge lists and remove duplicates using set
+        merged_categories = list(set(attribute_categories + category_id_list))
+        print(merged_categories)
+        # Update the attribute group with merged categories
+        url = f"{self.site_url}/webapi/rest/attribute-groups/{group_id}"
+        try:
+            response = self._handle_request('PUT', url, json={'categories': merged_categories})
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            print(f"Error updating attribute group categories: {str(e)}")
+            raise
+        

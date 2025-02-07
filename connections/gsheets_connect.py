@@ -68,13 +68,22 @@ class GSheetsClient:
 
         batch_data = []
     
-        for row_number, created, date_created, product_url, product_id in updates:
+        for row_number, created, date_created, product_url, product_id, product_category_id in updates:
             batch_data.append({
-                'range': f"F{row_number}:I{row_number}",
-                'values': [[created, date_created, product_url, product_id]]
+                'range': f"F{row_number}:J{row_number}",
+                'values': [[created, date_created, product_url, product_id, product_category_id]]
             })
 
         # Perform batch update
         worksheet.batch_update(batch_data)
 
         print(f"✓ | Successfully updated {len(updates)} rows in Google Sheets.")
+
+    def get_all_category_ids(self):
+        """Get all category IDs from the Google Sheets."""
+        all_categories = self.get_data(include_row_numbers=True)
+
+        category_ids = all_categories['ID Kategorii'].unique()
+        return category_ids
+
+

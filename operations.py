@@ -25,7 +25,7 @@ def create_shoper_offers(shoper_client, gsheets_client):
 
                 date_created = datetime.today().strftime(r"%d-%m-%Y")
                 
-                product_id, product_url = shoper_client.create_a_product(
+                product_id, product_url, product_category_id = shoper_client.create_a_product(
                     product_code=product_ean,
                     outlet_code=product_code,
                     damage_type=damage_type
@@ -42,7 +42,7 @@ def create_shoper_offers(shoper_client, gsheets_client):
                 
                 if len(google_sheets_row) > 0:
                     row_number = google_sheets_row[0]
-                    sheet_updates.append([row_number, True, date_created, product_url, product_id])
+                    sheet_updates.append([row_number, True, date_created, product_url, product_id, product_category_id])
                 else:
                     print(f"Warning: SKU {product_code} not found in Google Sheets!")
 
@@ -77,6 +77,7 @@ def set_main_product_attributes(shoper_client, gsheets_client):
         print(f'Created single product table with {len(single_ean_products)} unique EANs')
 
         products = {}
+
         for _, row_single in single_ean_products.iterrows():
             product_ean = row_single['EAN']
             product_ids_list = all_products[all_products['EAN'] == product_ean]['ID Shoper'].tolist()
@@ -100,8 +101,7 @@ def set_main_product_attributes(shoper_client, gsheets_client):
                 shoper_client.upload_an_attribute_by_code(
                     product_ean,
                     attribute_id,
-                    attribute_value,
-                    attribute_group
+                    attribute_value
                 )
                 print(f"Updated attributes for EAN: {product_ean}")
             except Exception as e:
@@ -109,4 +109,46 @@ def set_main_product_attributes(shoper_client, gsheets_client):
 
     except Exception as e:
         print(f"Fatal error in set_main_product_attributes: {str(e)}")
+        raise
+
+def update_attribute_group_categories(shoper_client, gsheets_client):
+
+    ATTRIBUTE_IDS = {
+            'MAIN': {'id': '1402', 'group': '577'},
+            'TEST': {'id': '29', 'group': '9'}
+        }
+
+    attribute_group = ATTRIBUTE_IDS[config.SITE]['group']
+    
+    try:
+        gsheets_categories = gsheets_client.get_all_category_ids()
+        # Add error handling and filtering for the conversion
+        cleaned_categories = []
+
+        #
+        # I need to look into this problem
+        # The IDs are not integers and I need to convert them to integers
+        #
+        
+        for category_id in gsheets_categories:
+            try:
+
+                cleaned_categories.append(int(category_id))
+            except (ValueError, TypeError):
+                print(f"Warning: Skipping invalid category ID: {category_id}")
+        gsheets_categories = cleaned_categories
+    except Exception as e:
+        print(f"Fatal error in update_attribute_group_categories: {str(e)}")
+        raise
+    
+    try:
+        attribute_categories = shoper_client.get_attribute_group_info(attribute_group)['categories']
+    except Exception as e:
+        print(f"Fatal error in update_attribute_group_categories: {str(e)}")
+        raise
+
+    try:
+        shoper_client.merge_attribute_group_categories(attribute_group, attribute_categories, gsheets_categories)
+    except Exception as e:
+        print(f"Fatal error in update_attribute_group_categories: {str(e)}")
         raise
