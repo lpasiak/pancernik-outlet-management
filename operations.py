@@ -8,7 +8,6 @@ def create_shoper_offers(shoper_client, gsheets_client):
     try:
 
         all_products = gsheets_client.select_offers_ready_to_publish()
-        all_products = all_products.head(500)
 
         counter_product = all_products.shape[0]
         counter_product_created = 0
@@ -20,6 +19,7 @@ def create_shoper_offers(shoper_client, gsheets_client):
             product_code = row['SKU']
             product_ean = row['EAN']
             damage_type = row['Uszkodzenie']
+
             date_created = datetime.today().strftime(r"%d-%m-%Y")
 
             try:
@@ -61,7 +61,9 @@ def create_shoper_offers(shoper_client, gsheets_client):
 def set_main_product_attributes(shoper_client, gsheets_client):
 
     all_products = gsheets_client.get_data(include_row_numbers=True)
+
     single_ean_products = all_products.drop_duplicates(subset=['EAN'], keep='first').copy()
+    print('Created single product table.')
 
     products = {}
 
