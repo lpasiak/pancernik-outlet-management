@@ -26,7 +26,7 @@ def get_user_action():
     return str(input('''
 Co chcesz zrobić?
 1. Wystawić produkty outletowe
-2. Dopisać atrybuty głównym produktom
+2. Dopisać atrybuty outletowe głównym produktom
 3. Pobrać wszystkie produkty
 q żeby wyjść.
 Akcja: '''))
@@ -37,16 +37,16 @@ def main():
 
     load_environment()
     shoper_client = initialize_shoper_client()
-    gsheets_client = initialize_gsheets_client()
+    outlet_gsheets_client = initialize_gsheets_client()
 
     shoper_client.connect()
-    gsheets_client.connect()
+    outlet_gsheets_client.connect()
 
     if action == '1':
-        operations.create_shoper_offers(shoper_client, gsheets_client)
+        operations.create_shoper_offers(shoper_client, outlet_gsheets_client)
     elif action == '2':
-        operations.update_attribute_group_categories(shoper_client, gsheets_client)
-        operations.set_main_product_attributes(shoper_client, gsheets_client)
+        operations.update_attribute_group_categories(shoper_client, outlet_gsheets_client)
+        operations.set_main_product_attributes(shoper_client, outlet_gsheets_client)
     elif action == '3':
         shoper_client.get_all_products()
     elif action == 'q':

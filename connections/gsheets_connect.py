@@ -1,5 +1,6 @@
 import gspread
 import pandas as pd
+from datetime import datetime
 from pathlib import Path
 import os
 
@@ -54,8 +55,15 @@ class GSheetsClient:
     def select_offers_ready_to_publish(self):
         """Get data of all the items ready to publish based on 'Wystawione' column"""
         all_offers = self.get_data(include_row_numbers=True)
+        
+        today = datetime.today().strftime('%d-%m-%Y')
 
-        selected_offers = all_offers[all_offers["Wystawione"] != 'TRUE']
+        # Select offers that are not published, have a SKU, and have a date that is not today
+        selected_offers = all_offers[
+            (all_offers["Wystawione"] != 'TRUE') & 
+            (all_offers["SKU"] != '') & 
+            (all_offers['Data'].fillna('') != today)]
+
         selected_offers.to_excel(os.path.join(self.sheets_dir, 'google_sheets_to_publish.xlsx'), index=False)
         
         print('Selected offers ready to publish.')

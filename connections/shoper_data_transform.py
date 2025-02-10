@@ -35,7 +35,7 @@ def transform_offer_to_product(source_product, outlet_code, damage_type):
             'price': outlet_price,
             'active': 1,
             'stock': 1,
-            'gfx_id': source_product['main_image']['gfx_id'],
+            'gfx_id': source_product['img'][0]['gfx_id'],
             'availability_id': None,
             'delivery_id': 1,
             'weight': 0.2,
