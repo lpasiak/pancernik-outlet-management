@@ -33,8 +33,6 @@ Akcja: '''))
 
 def main():
 
-    action = get_user_action()
-
     load_environment()
     shoper_client = initialize_shoper_client()
     outlet_gsheets_client = initialize_gsheets_client()
@@ -42,17 +40,20 @@ def main():
     shoper_client.connect()
     outlet_gsheets_client.connect()
 
-    if action == '1':
-        operations.create_shoper_offers(shoper_client, outlet_gsheets_client)
-    elif action == '2':
-        operations.update_attribute_group_categories(shoper_client, outlet_gsheets_client)
-        operations.set_main_product_attributes(shoper_client, outlet_gsheets_client)
-    elif action == '3':
-        shoper_client.get_all_products()
-    elif action == 'q':
-        print('Do zobaczenia!')
-    else:
-        print('Nie ma takiego wyboru :/')
+    while True:
+        action = get_user_action()
+        
+        if action == '1':
+            operations.create_shoper_offers(shoper_client, outlet_gsheets_client)
+        elif action == '2':
+            operations.update_attribute_group_categories(shoper_client, outlet_gsheets_client)
+            operations.set_main_product_attributes(shoper_client, outlet_gsheets_client)
+        elif action == '3':
+            shoper_client.get_all_products()
+        elif action == 'q':
+            print('Do zobaczenia!')
+        else:
+            print('Nie ma takiego wyboru :/')
 
 if __name__ == "__main__":
     main()
