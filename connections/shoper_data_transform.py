@@ -88,12 +88,13 @@ def transform_offer_photos(source_product, new_product_id):
         image_item = {
             'product_id': new_product_id,
             'url': f"{site_url}/userdata/public/gfx/{image_id}",
-            'is_main': 1 if index == 1 else 0,
-            'order': index,
+            'main': str(image['main']),
+            'order': image['order'],
             'name': f'{new_product_id}_{index}'
         }
 
         final_images.append(image_item)
+        final_images.sort(key=lambda x: x['order'])
 
     return final_images
 
