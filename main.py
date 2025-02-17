@@ -40,8 +40,7 @@ def main():
     shoper_client.connect()
     outlet_gsheets_client.connect()
 
-    df = outlet_gsheets_client.select_offers_for_discount()
-    print(df)
+    operations.discount_offers(shoper_client, outlet_gsheets_client)
     # while True:
     #     action = get_user_action()
         

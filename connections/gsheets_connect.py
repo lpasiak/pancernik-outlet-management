@@ -74,23 +74,6 @@ class GSheetsClient:
         print("-----------------------------------")
         return selected_offers
 
-    def update_rows(self, updates):
-
-        worksheet = self.sheet.worksheet(self.sheet_name)
-
-        batch_data = []
-    
-        for row_number, created, date_created, product_url, product_id, product_category_id in updates:
-            batch_data.append({
-                'range': f"F{row_number}:J{row_number}",
-                'values': [[created, date_created, product_url, product_id, product_category_id]]
-            })
-
-        # Perform batch update
-        worksheet.batch_update(batch_data)
-
-        print(f"✓ | Successfully updated {len(updates)} rows in Google Sheets.")
-
     def get_all_category_ids(self):
         """Get all category IDs from the Google Sheets."""
         all_categories = self.get_data(include_row_numbers=True)
@@ -128,3 +111,36 @@ class GSheetsClient:
             print("-----------------------------------")
 
         return selected_offers
+    
+    def update_rows_of_created_offers(self, updates):
+
+        worksheet = self.sheet.worksheet(self.sheet_name)
+        batch_data = []
+    
+        for row_number, created, date_created, product_url, product_id, product_category_id in updates:
+            batch_data.append({
+                'range': f"F{row_number}:J{row_number}",
+                'values': [[created, date_created, product_url, product_id, product_category_id]]
+            })
+
+        # Perform batch update
+        worksheet.batch_update(batch_data)
+
+        print(f"✓ | Successfully updated {len(updates)} rows in Google Sheets.")
+
+    # Under construction
+    def update_rows_of_discounted_offers(self, updates):
+
+        worksheet = self.sheet.worksheet(self.sheet_name)
+        batch_data = []
+    
+        for row_number, discounted in updates:
+            batch_data.append({
+                'range': f"K{row_number}",
+                'values': [[discounted]]
+            })
+
+        # Perform batch update
+        worksheet.batch_update(batch_data)
+
+        print(f"✓ | Successfully updated {len(updates)} rows in Google Sheets.")

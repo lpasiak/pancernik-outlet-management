@@ -58,7 +58,7 @@ def create_shoper_offers(shoper_client, gsheets_client):
                 
         if sheet_updates:
             try:
-                gsheets_client.update_rows(sheet_updates)
+                gsheets_client.update_rows_of_created_offers(sheet_updates)
             except Exception as e:
                 print(f"Failed to update Google Sheets: {str(e)}")
 
@@ -115,7 +115,6 @@ def update_attribute_group_categories(shoper_client, gsheets_client):
 
     ATTRIBUTE_IDS = {
             'MAIN': {'id': '1402', 'group': '577'},
-            
             'TEST': {'id': '29', 'group': '9'}
         }
 
@@ -138,4 +137,39 @@ def update_attribute_group_categories(shoper_client, gsheets_client):
         shoper_client.merge_attribute_group_categories(attribute_group, attribute_categories, gsheets_categories)
     except Exception as e:
         print(f"Fatal error in update_attribute_group_categories: {str(e)}")
+        raise
+
+def discount_offers(shoper_client, gsheets_client):
+    try:
+        all_products = gsheets_client.select_offers_for_discount()
+        
+        counter_offer = all_products.shape[0]
+        counter_offers_created = 0
+        sheet_updates = []
+        
+        for index, row in all_products.iterrows():
+            product_id = row['ID Shoper']
+            product_code = row['SKU']
+            product_discounted = row['Druga Obniżka']
+
+            google_sheets_row = all_products.loc[all_products['SKU'] == product_code, 'Row Number'].values
+
+            counter_offers_created += 1
+
+            if len(google_sheets_row) > 0:
+                    row_number = google_sheets_row[0]
+                    sheet_updates.append([row_number, True])
+            else:
+                print(f"Warning: SKU {product_code} not found in Google Sheets!")
+            
+            # Here goes the request to Shoper API to create a discount
+
+        if sheet_updates:
+            try:
+                gsheets_client.update_rows_of_discounted_offers(sheet_updates)
+            except Exception as e:
+                print(f"Failed to update Google Sheets: {str(e)}")
+
+    except Exception as e:
+        print(f"Fatal error in discount_offers: {str(e)}")
         raise
