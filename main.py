@@ -40,21 +40,23 @@ def main():
     shoper_client.connect()
     outlet_gsheets_client.connect()
 
-    while True:
-        action = get_user_action()
+    df = outlet_gsheets_client.select_offers_for_discount()
+    print(df)
+    # while True:
+    #     action = get_user_action()
         
-        if action == '1':
-            operations.create_shoper_offers(shoper_client, outlet_gsheets_client)
-        elif action == '2':
-            operations.update_attribute_group_categories(shoper_client, outlet_gsheets_client)
-            operations.set_main_product_attributes(shoper_client, outlet_gsheets_client)
-        elif action == '3':
-            shoper_client.get_all_products()
-        elif action == 'q':
-            print('Do zobaczenia!')
-            break
-        else:
-            print('Nie ma takiego wyboru :/')
+    #     if action == '1':
+    #         operations.create_shoper_offers(shoper_client, outlet_gsheets_client)
+    #     elif action == '2':
+    #         operations.update_attribute_group_categories(shoper_client, outlet_gsheets_client)
+    #         operations.set_main_product_attributes(shoper_client, outlet_gsheets_client)
+    #     elif action == '3':
+    #         shoper_client.get_all_products()
+    #     elif action == 'q':
+    #         print('Do zobaczenia!')
+    #         break
+    #     else:
+    #         print('Nie ma takiego wyboru :/')
 
 if __name__ == "__main__":
     main()
