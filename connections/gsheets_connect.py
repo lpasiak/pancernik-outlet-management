@@ -98,4 +98,20 @@ class GSheetsClient:
         
         return category_ids
 
+    def select_offers_for_discount(self):
+        """Get data of all the items ready to publish based on 'Data wystawienia' column"""
+        all_offers = self.get_data(include_row_numbers=True)
+        
+        today = datetime.today().strftime('%d-%m-%Y')
 
+        # Select offers that were published before 14 days and more from today
+        selected_offers = all_offers[
+            (all_offers["Wystawione"] == 'TRUE') & 
+            (all_offers["SKU"] != '') & 
+            (all_offers['Data'].fillna('') != today)]
+
+        selected_offers.to_excel(os.path.join(self.sheets_dir, 'google_sheets_to_discount.xlsx'), index=False)
+        
+        print('Selected offers ready to be discounted.')
+        print("-----------------------------------")
+        return selected_offers

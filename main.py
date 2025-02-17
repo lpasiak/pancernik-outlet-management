@@ -52,6 +52,7 @@ def main():
             shoper_client.get_all_products()
         elif action == 'q':
             print('Do zobaczenia!')
+            break
         else:
             print('Nie ma takiego wyboru :/')
 
