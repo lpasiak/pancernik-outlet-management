@@ -413,3 +413,18 @@ class ShoperAPIClient:
             raise
 
         return update_product_response
+    
+    def remove_product(self, product_id):
+        url = f"{self.site_url}/webapi/rest/products/{product_id}"
+        try:
+            response = self._handle_request('DELETE', url)
+            response.raise_for_status()
+            
+            if response.status_code == 200:
+                print(f"✓ | Product {product_id} removed successfully!")
+            else:
+                print(f"X | Failed to remove product {product_id}. API Response: {response.text}")
+
+        except Exception as e:
+            print(f"Error removing product {product_id}: {str(e)}")
+            raise
