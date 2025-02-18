@@ -144,25 +144,25 @@ def discount_offers(shoper_client, gsheets_client):
         all_products = gsheets_client.select_offers_for_discount()
         
         counter_offer = all_products.shape[0]
-        counter_offers_created = 0
+        counter_offers_discounted = 0
         sheet_updates = []
         
-        for index, row in all_products.iterrows():
+        for _, row in all_products.iterrows():
             product_id = row['ID Shoper']
             product_code = row['SKU']
-            product_discounted = row['Druga Obniżka']
 
             google_sheets_row = all_products.loc[all_products['SKU'] == product_code, 'Row Number'].values
 
-            counter_offers_created += 1
+            response = shoper_client.discount_product(product_id)
 
-            if len(google_sheets_row) > 0:
-                    row_number = google_sheets_row[0]
-                    sheet_updates.append([row_number, True])
-            else:
-                print(f"Warning: SKU {product_code} not found in Google Sheets!")
-            
-            # Here goes the request to Shoper API to create a discount
+            if response.status_code == 200:
+
+                if len(google_sheets_row) > 0:
+                        row_number = google_sheets_row[0]
+                        sheet_updates.append([row_number, True])
+                        counter_offers_discounted += 1
+                else:
+                    print(f"Warning: SKU {product_code} not found in Google Sheets!")
 
         if sheet_updates:
             try:

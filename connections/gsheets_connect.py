@@ -22,12 +22,12 @@ class GSheetsClient:
         self.gc = None
         self.sheet = None
         self.sheet_name = sheet_name
-        self.worksheet = self.sheet.worksheet(self.sheet_name)
 
         # We will save downloaded data in Excel in 'sheets' directory.
         # It needs to be created if it doesn't exist in our local files.
         self.sheets_dir = Path('sheets')
         self.sheets_dir.mkdir(exist_ok=True)
+
 
     def connect(self):
         """Authenticate with Google Sheets."""
@@ -41,6 +41,7 @@ class GSheetsClient:
     def get_data(self, include_row_numbers=False):
         """Get data from a Google Sheets worksheet as a pandas DataFrame."""
 
+        self.worksheet = self.sheet.worksheet(self.sheet_name)
         data = self.worksheet.get_all_values()
         
         df = pd.DataFrame(data[1:], columns=data[0])  # First row as header
@@ -115,6 +116,7 @@ class GSheetsClient:
     def update_rows_of_created_offers(self, updates):
 
         batch_data = []
+        self.worksheet = self.sheet.worksheet(self.sheet_name)
     
         for row_number, created, date_created, product_url, product_id, product_category_id in updates:
             batch_data.append({
@@ -129,6 +131,7 @@ class GSheetsClient:
     def update_rows_of_discounted_offers(self, updates):
 
         batch_data = []
+        self.worksheet = self.sheet.worksheet(self.sheet_name)
     
         for row_number, discounted in updates:
             batch_data.append({

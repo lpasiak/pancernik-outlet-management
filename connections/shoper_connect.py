@@ -392,3 +392,25 @@ class ShoperAPIClient:
             print(f"Error updating attribute group categories: {str(e)}")
             raise
         
+    def discount_product(self, product_id):
+        url = f"{self.site_url}/webapi/rest/products/{product_id}"
+        
+        try:
+            get_product_response = self._handle_request('GET', url)
+            product_price = float(get_product_response.json()['stock']['price'])
+            discount_price = round(product_price * 0.8, 2)
+            print(discount_price)
+
+            update_product_response = self._handle_request('PUT', url, json={'stock': {'price': discount_price}})
+
+            if update_product_response.status_code == 200:
+                print(f"✓ | Product {product_id} discounted successfully!")
+
+            else:
+                print(f"X | Failed to discount product {product_id}. API Response: {update_product_response.text}")
+
+        except Exception as e:  
+            print(f"Error getting product price: {str(e)}")
+            raise
+
+        return update_product_response
