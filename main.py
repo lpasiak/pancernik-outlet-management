@@ -23,11 +23,12 @@ def initialize_gsheets_client():
     )
 
 def get_user_action():
-    return str(input('''
+    return str(input(f'''
 Co chcesz zrobić?
 1. Wystawić produkty outletowe
 2. Dopisać atrybuty outletowe głównym produktom
 3. Pobrać wszystkie produkty
+4. Obniżyć ceny starsze niż {config.DISCOUNT_DAYS} dni
 q żeby wyjść.
 Akcja: '''))
 
@@ -50,6 +51,8 @@ def main():
             operations.set_main_product_attributes(shoper_client, outlet_gsheets_client)
         elif action == '3':
             shoper_client.get_all_products()
+        elif action == '4':
+            operations.discount_offers(shoper_client, outlet_gsheets_client)
         elif action == 'q':
             print('Do zobaczenia!')
             break
