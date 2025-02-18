@@ -1,5 +1,5 @@
 import operations
-from connections import GSheetsClient, ShoperAPIClient 
+from connections import GSheetsClient, ShoperAPIClient, EasyStorageData
 from dotenv import load_dotenv
 import os
 import config
@@ -40,24 +40,26 @@ def main():
 
     shoper_client.connect()
     outlet_gsheets_client.connect()
+    easystorage_data = EasyStorageData(config.EASYSTORAGE_PATH)
 
-    while True:
-        action = get_user_action()
+    print(easystorage_data.outlet_products)
+    # while True:
+    #     action = get_user_action()
         
-        if action == '1':
-            operations.create_shoper_offers(shoper_client, outlet_gsheets_client)
-        elif action == '2':
-            operations.update_attribute_group_categories(shoper_client, outlet_gsheets_client)
-            operations.set_main_product_attributes(shoper_client, outlet_gsheets_client)
-        elif action == '3':
-            shoper_client.get_all_products()
-        elif action == '4':
-            operations.discount_offers(shoper_client, outlet_gsheets_client)
-        elif action == 'q':
-            print('Do zobaczenia!')
-            break
-        else:
-            print('Nie ma takiego wyboru :/')
+    #     if action == '1':
+    #         operations.create_shoper_offers(shoper_client, outlet_gsheets_client)
+    #     elif action == '2':
+    #         operations.update_attribute_group_categories(shoper_client, outlet_gsheets_client)
+    #         operations.set_main_product_attributes(shoper_client, outlet_gsheets_client)
+    #     elif action == '3':
+    #         shoper_client.get_all_products()
+    #     elif action == '4':
+    #         operations.discount_offers(shoper_client, outlet_gsheets_client)
+    #     elif action == 'q':
+    #         print('Do zobaczenia!')
+    #         break
+    #     else:
+    #         print('Nie ma takiego wyboru :/')
 
 if __name__ == "__main__":
     main()
