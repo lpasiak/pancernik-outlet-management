@@ -399,12 +399,11 @@ class ShoperAPIClient:
             get_product_response = self._handle_request('GET', url)
             product_price = float(get_product_response.json()['stock']['price'])
             discount_price = round(product_price * 0.8, 2)
-            print(discount_price)
 
             update_product_response = self._handle_request('PUT', url, json={'stock': {'price': discount_price}})
 
             if update_product_response.status_code == 200:
-                print(f"✓ | Product {product_id} discounted successfully!")
+                print(f"✓ | Product {product_id} discounted successfully! Set price to {discount_price}")
 
             else:
                 print(f"X | Failed to discount product {product_id}. API Response: {update_product_response.text}")

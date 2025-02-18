@@ -1,9 +1,14 @@
 from datetime import datetime
 import os
 import config
+import time
 
 def create_shoper_offers(shoper_client, gsheets_client):
+
     try:
+        # Measure runtime of the function
+        start_time = time.time()
+
         all_products = gsheets_client.select_offers_ready_to_publish()
         if all_products.empty:
             print("No products found ready to publish")
@@ -62,12 +67,18 @@ def create_shoper_offers(shoper_client, gsheets_client):
             except Exception as e:
                 print(f"Failed to update Google Sheets: {str(e)}")
 
+        end_time = time.time()
+        print(f"Total runtime of create_shoper_offers: {round(end_time - start_time, 2)} seconds")
+
     except Exception as e:
         print(f"Fatal error in create_shoper_offers: {str(e)}")
         raise
 
 def set_main_product_attributes(shoper_client, gsheets_client):
     try:
+        # Measure runtime of the function
+        start_time = time.time()
+
         all_products = gsheets_client.get_data(include_row_numbers=True)
         if all_products.empty:
             print("No products found in sheets")
@@ -107,16 +118,22 @@ def set_main_product_attributes(shoper_client, gsheets_client):
             except Exception as e:
                 print(f"Failed to update attributes for EAN {product_ean}: {str(e)}")
 
+        end_time = time.time()
+        print(f"Total runtime of set_main_product_attributes: {round(end_time - start_time, 2)} seconds")
+
     except Exception as e:
         print(f"Fatal error in set_main_product_attributes: {str(e)}")
         raise
 
 def update_attribute_group_categories(shoper_client, gsheets_client):
+        
+    # Measure runtime of the function
+    start_time = time.time()
 
     ATTRIBUTE_IDS = {
-            'MAIN': {'id': '1402', 'group': '577'},
-            'TEST': {'id': '29', 'group': '9'}
-        }
+        'MAIN': {'id': '1402', 'group': '577'},
+        'TEST': {'id': '29', 'group': '9'}
+    }
 
     attribute_group = ATTRIBUTE_IDS[config.SITE]['group']
     
@@ -139,8 +156,14 @@ def update_attribute_group_categories(shoper_client, gsheets_client):
         print(f"Fatal error in update_attribute_group_categories: {str(e)}")
         raise
 
+    end_time = time.time()
+    print(f"Total runtime of update_attribute_group_categories: {round(end_time - start_time, 2)} seconds")
+
 def discount_offers(shoper_client, gsheets_client):
     try:
+        # Measure runtime of the function
+        start_time = time.time()
+
         all_products = gsheets_client.select_offers_for_discount()
         
         counter_offer = all_products.shape[0]
@@ -169,6 +192,9 @@ def discount_offers(shoper_client, gsheets_client):
                 gsheets_client.update_rows_of_discounted_offers(sheet_updates)
             except Exception as e:
                 print(f"Failed to update Google Sheets: {str(e)}")
+
+        end_time = time.time()
+        print(f"Total runtime of discount_offers: {round(end_time - start_time, 2)} seconds")
 
     except Exception as e:
         print(f"Fatal error in discount_offers: {str(e)}")
