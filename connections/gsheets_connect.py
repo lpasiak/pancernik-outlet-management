@@ -112,6 +112,36 @@ class GSheetsClient:
 
         return selected_offers
     
+    def select_offers_for_lacking(self, shoper_client):
+        """Get data of all the items ready to be moved to lacking products (because they have no main product on Shoper)"""
+        all_offers = self.get_data(include_row_numbers=True)
+
+        columns_to_keep = ['Row Number', 'EAN', 'SKU', 'Nazwa', 'Uszkodzenie', 'Data']
+
+        mask = (
+            (all_offers["Wystawione"] != 'TRUE') & 
+            (all_offers["SKU"].notna() & all_offers["SKU"].ne(''))
+        )
+        selected_offers = all_offers[mask].copy()
+        selected_offers['Row Number'] = all_offers.loc[mask, 'Row Number']
+        
+        # If the product EAN exists in Shoper, drop the offer from the selected_offers df
+        try:
+            for index, row in selected_offers.iterrows():
+                response = shoper_client.get_a_single_product_by_code(row['EAN'])
+                
+                # get_a_single_product_by_code returns None or a product dict, not a response object
+                # So we should check if response exists, not its status code
+                if response is not None:
+                    selected_offers = selected_offers.drop(index)
+
+            print('The offers above will be moved to lacking products.')
+            print("-----------------------------------")
+        except Exception as e:
+            print(f'Fatal Error in select_offers_for_lacking: {e}')
+                
+        return selected_offers[columns_to_keep]
+
     def update_rows_of_created_offers(self, updates):
 
         batch_data = []
@@ -141,3 +171,48 @@ class GSheetsClient:
         self.worksheet.batch_update(batch_data)
 
         print(f"✓ | Successfully updated {len(updates)} rows in Google Sheets.")
+
+    def batch_move_products_to_lacking(self, shoper_client):
+        """Move products to lacking products sheet in batch."""
+        
+        try:
+            self.df_to_move = self.select_offers_for_lacking(shoper_client)
+            self.source_worksheet = self.sheet.worksheet(self.sheet_name)
+            self.target_worksheet = self.sheet.worksheet(config.SHEET_LACKING_PRODUCTS_NAME)
+
+            if self.df_to_move.empty:
+                print("No products to move.")
+                return
+
+            # Convert DataFrame to list of lists for Google Sheets, dropping Row Number column
+            df_to_move = self.df_to_move.drop('Row Number', axis=1)
+            values_to_append = df_to_move.values.tolist()
+
+            # Get current sheet dimensions
+            current_rows = len(self.target_worksheet.get_all_values())
+            needed_rows = current_rows + len(values_to_append)
+            
+            # Resize the sheet if necessary by adding empty rows
+            if needed_rows > current_rows:
+                self.target_worksheet.resize(rows=needed_rows)
+            
+            # Find the first empty row in target worksheet
+            next_row = current_rows + 1  # Add 1 to start after the last row
+            
+            batch_data = [{
+                'range': f'A{next_row}',
+                'values': values_to_append
+            }]
+
+            # Perform the batch update
+            try:
+                self.target_worksheet.batch_update(batch_data)
+                print(f"✓ | Successfully moved {len(values_to_append)} products to lacking products sheet.")
+                print("-----------------------------------")
+            except Exception as e:
+                print(f"Failed to move products to lacking products sheet: {str(e)}")
+                print("-----------------------------------")
+
+        except Exception as e:
+            print(f"Failed to move products to lacking products sheet: {str(e)}")
+            raise

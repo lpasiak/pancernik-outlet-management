@@ -16,6 +16,7 @@ Co chcesz zrobić?
 2. Dopisać atrybuty outletowe głównym produktom
 3. Pobrać wszystkie produkty
 4. Obniżyć ceny starsze niż {config.DISCOUNT_DAYS} dni
+5. Przenieść produkty do arkusza "Brak produktu"
 q żeby wyjść.
 Akcja: '''))
 
@@ -31,10 +32,8 @@ def main():
     outlet_gsheets_client.connect()
     archived_gsheets_client.connect()
     lacking_products_gsheets_client.connect()
-    easystorage_data = EasyStorageData(config.EASYSTORAGE_PATH)
+    # easystorage_data = EasyStorageData(config.EASYSTORAGE_PATH)
 
-    # print(easystorage_data.outlet_products)
-    
     while True:
         action = get_user_action()
         
@@ -47,6 +46,8 @@ def main():
             shoper_client.get_all_products()
         elif action == '4':
             operations.discount_offers(shoper_client, outlet_gsheets_client)
+        elif action == '5':
+            outlet_gsheets_client.batch_move_products_to_lacking(shoper_client)
         elif action == 'q':
             print('Do zobaczenia!')
             break
