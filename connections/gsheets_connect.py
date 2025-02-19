@@ -122,7 +122,7 @@ class GSheetsClient:
             (all_offers["Wystawione"] != 'TRUE') & 
             (all_offers["SKU"].notna() & all_offers["SKU"].ne(''))
         )
-        selected_offers = all_offers[mask].copy()
+        selected_offers = all_offers[mask]
         selected_offers['Row Number'] = all_offers.loc[mask, 'Row Number']
         
         # If the product EAN exists in Shoper, drop the offer from the selected_offers df
@@ -130,8 +130,6 @@ class GSheetsClient:
             for index, row in selected_offers.iterrows():
                 response = shoper_client.get_a_single_product_by_code(row['EAN'])
                 
-                # get_a_single_product_by_code returns None or a product dict, not a response object
-                # So we should check if response exists, not its status code
                 if response is not None:
                     selected_offers = selected_offers.drop(index)
 
