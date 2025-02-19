@@ -2,7 +2,6 @@ import gspread
 import pandas as pd
 from datetime import datetime
 from pathlib import Path
-from datetime import timedelta
 import os
 import config
 
@@ -35,7 +34,7 @@ class GSheetsClient:
         self.gc = gspread.service_account(filename=self.credentials_path)
         self.sheet = self.gc.open_by_key(self.sheet_id)
 
-        print("Google Authentication successful.")
+        print(f"Google Authentication {self.sheet_name} successful.")
         print("-----------------------------------")
 
     def get_data(self, include_row_numbers=False):

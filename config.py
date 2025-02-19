@@ -9,6 +9,8 @@ SHOPER_LIMIT = 50
 # Google Sheet name
 SHEET = 'TEST'
 SHEET_NAME = 'Outlety'
+SHEET_LACKING_PRODUCTS_NAME = 'Brak produktów'
+SHEET_ARCHIVED_NAME = 'Archiwum'
 
 # Time after which the offer should be discounted
 DISCOUNT_DAYS = 14
