@@ -100,19 +100,8 @@ class ShoperAPIClient:
     
     def get_a_single_product(self, product_id):
         url = f'{self.site_url}/webapi/rest/products/{product_id}'
-        photo_url = f'{self.site_url}/webapi/rest/product-images'
-        
-        photo_filter = {
-            "filters": json.dumps({"product_id": product_id}),
-            "limit": 50
-        }
-
         response = self._handle_request('GET', url)
-        photo_response = self._handle_request('GET', photo_url, params=photo_filter)
-
         product = response.json()
-        product_photos = photo_response.json()['list']
-        product['img'] = product_photos
 
         return product
     
