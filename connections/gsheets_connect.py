@@ -180,6 +180,7 @@ class GSheetsClient:
 
             if self.df_to_move.empty:
                 print("No products to move.")
+                print("-----------------------------------")
                 return
 
             # Convert DataFrame to list of lists for Google Sheets, dropping Row Number column
