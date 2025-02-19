@@ -1,6 +1,6 @@
 import operations
 from connections import EasyStorageData
-from connections import init_gsheets, init_gsheets_archived, init_gsheets_lacking_products, init_shoper
+from connections import init_gsheets, init_shoper
 from dotenv import load_dotenv
 import os
 import config
@@ -24,15 +24,12 @@ def main():
     load_environment()
     shoper_client = init_shoper()
     outlet_gsheets_client = init_gsheets()
-    archived_gsheets_client = init_gsheets_archived()
-    lacking_products_gsheets_client = init_gsheets_lacking_products()
     
     shoper_client.connect()
     outlet_gsheets_client.connect()
-    archived_gsheets_client.connect()
-    lacking_products_gsheets_client.connect()
-    # easystorage_data = EasyStorageData(config.EASYSTORAGE_PATH)
+    easystorage_data = EasyStorageData(config.EASYSTORAGE_PATH)
 
+    # operations.select_sold_products(shoper_client, outlet_gsheets_client, easystorage_data)
     while True:
         action = get_user_action()
         

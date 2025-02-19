@@ -199,3 +199,8 @@ def discount_offers(shoper_client, gsheets_client):
     except Exception as e:
         print(f"Fatal error in discount_offers: {str(e)}")
         raise
+
+def select_sold_products(shoper_client, gsheets_client, easystorage_data):
+    easy_storage_data = easystorage_data
+    
+    print(easy_storage_data)
