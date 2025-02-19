@@ -303,7 +303,7 @@ class ShoperAPIClient:
         # Step 7: Upload images
         final_product_photos = shoper_data_transform.transform_offer_photos(product, final_product_id)
         photo_url = f"{self.site_url}/webapi/rest/product-images"
-
+        
         for photo in final_product_photos:
             try:
                 response = self._handle_request('POST', photo_url, json=photo)
@@ -314,8 +314,22 @@ class ShoperAPIClient:
             except Exception as e:
                 print(f"X | Error uploading image {photo['order']} for product {final_product_id}: {e}")
 
-        # Step 8: Upload a url
+        get_created_product_url = f'{self.site_url}/webapi/rest/products/{final_product_id}'
 
+        # Change stock.gfx_id to the main image (to troubleshoot getting stock.gfx from the old product)
+        try:
+            get_created_product = self._handle_request('GET', get_created_product_url).json()
+            stock_gfx = get_created_product['main_image']['gfx_id']
+
+            response = self._handle_request('PUT', update_product_url, json={'stock': {'gfx_id': stock_gfx}})
+            if response.status_code == 200:
+                print(f"✓ | Stock image {stock_gfx} set successfully!")
+            else:
+                print(f"X | Failed to set stock image {stock_gfx}. API Response: {response.text}")
+        except Exception as e:
+            print(f"X | Error setting stock image {photo['order']} for product {final_product_id}: {e}")
+
+        # Step 8: Upload a url
         if product_seo != None and product_seo != '':
             product_seo = f'{product_seo}-outlet-{final_product_id}'
         else:

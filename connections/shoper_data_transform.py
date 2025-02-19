@@ -79,7 +79,7 @@ def transform_offer_photos(source_product, new_product_id):
     source_images = source_product['img']
     final_images = []
 
-    for index, image in enumerate(source_images, start=1):
+    for image in source_images:
 
         # Creating a url for an image
         site_url = f"{os.getenv(f'SHOPERSITE_{config.SITE}')}"
@@ -90,7 +90,7 @@ def transform_offer_photos(source_product, new_product_id):
             'url': f"{site_url}/userdata/public/gfx/{image_id}",
             'main': str(image['main']),
             'order': image['order'],
-            'name': f'{new_product_id}_{index}'
+            'name': image['translations']['pl_PL']['name']
         }
 
         final_images.append(image_item)
