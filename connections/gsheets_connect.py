@@ -185,8 +185,8 @@ class GSheetsClient:
                 return
 
             # Convert DataFrame to list of lists for Google Sheets, dropping Row Number column
-            df_to_move = self.df_to_move.drop('Row Number', axis=1)
-            values_to_append = df_to_move.values.tolist()
+            df_without_rows = self.df_to_move.drop('Row Number', axis=1)
+            values_to_append = df_without_rows.values.tolist()
 
             # Get current sheet dimensions
             current_rows = len(self.target_worksheet.get_all_values())
@@ -212,6 +212,19 @@ class GSheetsClient:
             except Exception as e:
                 print(f"Failed to move products to lacking products sheet: {str(e)}")
                 print("-----------------------------------")
+
+            try:
+                # Get row numbers to delete in reverse order to maintain correct indices
+                row_numbers = sorted(self.df_to_move['Row Number'].tolist(), reverse=True)
+                
+                # Delete rows one by one from bottom to top
+                for row_num in row_numbers:
+                    self.source_worksheet.delete_rows(row_num)
+                
+                print(f"✓ | Successfully removed {len(row_numbers)} rows from outlet sheet.")
+                print("-----------------------------------")
+            except Exception as e:
+                print(f"Failed to remove products from outlet sheet: {str(e)}")
 
         except Exception as e:
             print(f"Failed to move products to lacking products sheet: {str(e)}")
