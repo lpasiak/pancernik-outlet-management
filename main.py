@@ -16,6 +16,7 @@ Co chcesz zrobić?
 2. Dopisać atrybuty outletowe głównym produktom
 3. Pobrać wszystkie produkty
 4. Obniżyć ceny starsze niż {config.DISCOUNT_DAYS} dni
+5. Przenieść sprzedane produkty do archiwum
 q żeby wyjść.
 Akcja: '''))
 
@@ -27,9 +28,8 @@ def main():
     
     shoper_client.connect()
     outlet_gsheets_client.connect()
-    easystorage_data = EasyStorageData(config.EASYSTORAGE_PATH)
+    easystorage_data = EasyStorageData(config.EASYSTORAGE_PATH).outlet_products
 
-    # operations.select_sold_products(shoper_client, outlet_gsheets_client, easystorage_data)
     while True:
         action = get_user_action()
         
@@ -43,6 +43,8 @@ def main():
             shoper_client.get_all_products()
         elif action == '4':
             operations.discount_offers(shoper_client, outlet_gsheets_client)
+        elif action == '5':
+            outlet_gsheets_client.batch_move_products_to_archived(shoper_client, easystorage_data)
         elif action == 'q':
             print('Do zobaczenia!')
             break

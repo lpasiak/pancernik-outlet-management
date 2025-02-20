@@ -241,37 +241,104 @@ class GSheetsClient:
             self.easy_storage_data = easystorage_data
             self.easy_storage_data['SKU'] = self.easy_storage_data['SKU'].str.upper()
             self.easy_storage_sku_list = self.easy_storage_data['SKU'].tolist()
-            print(self.easy_storage_data)
-            print(self.easy_storage_sku_list)
 
-            # gsheets_data = self.get_data(include_row_numbers=True)
-            # gsheets_data = gsheets_data[
-            #     (gsheets_data['Wystawione'] == 'TRUE') & 
-            #     (gsheets_data['ID Shoper'].notna()) & 
-            #     (gsheets_data['ID Shoper'] != '') & 
-            #     (gsheets_data['ID Shoper'] != 0)
-            # ]
+            gsheets_data = self.get_data(include_row_numbers=True)
+            gsheets_data = gsheets_data[
+                (gsheets_data['Wystawione'] == 'TRUE') & 
+                (gsheets_data['ID Shoper'].notna()) & 
+                (gsheets_data['ID Shoper'] != '') & 
+                (gsheets_data['ID Shoper'] != 0)
+            ]
 
-            # columns_to_keep = ['Row Number', 'EAN', 'SKU', 'Nazwa', 'Uszkodzenie', 'Data', 'Wystawione', 'Data wystawienia', 'Druga Obniżka']
-            # gsheets_data = gsheets_data[columns_to_keep]
-            # gsheets_data['Status'] = 'Sprzedane'
-            # gsheets_data['Zutylizowane'] = 'TRUE'
+            columns_to_keep = ['Row Number', 'EAN', 'SKU', 'Nazwa', 'Uszkodzenie', 'Data', 'Wystawione', 'Data wystawienia', 'Druga Obniżka', 'ID Shoper']
+            gsheets_data = gsheets_data[columns_to_keep]
+            gsheets_data['Status'] = 'Sprzedane'
+            gsheets_data['Zutylizowane'] = 'TRUE'
 
-            # for index, row in gsheets_data.iterrows():
+            if gsheets_data.empty:
+                return
 
-            #     product_sku = str(row['SKU'])
-            #     product_data = shoper_client.get_a_single_product(row['ID Shoper'])
-            #     product_stock = int(product_data['stock']['stock'])
+            gsheets_data_length = len(gsheets_data)
 
-            #     # If product has 0 items on Shoper and it is not in easy storage warehouse
-            #     # if product_stock != 0 or product_sku in self.easy_storage_sku_list:
-            #     #     gsheets_data = gsheets_data.drop(index)
+            for index, row in gsheets_data.iterrows():
 
-            # print(gsheets_data)
+                product_sku = str(row['SKU'])
+                product_data = shoper_client.get_a_single_product(row['ID Shoper'])
+                product_stock = int(product_data['stock']['stock'])
+
+                print(f'Analyzing product {product_sku} | {index + 1}/{gsheets_data_length}')
+                # If product has 0 items on Shoper and it is not in easy storage warehouse
+                if product_stock != 0 or product_sku in self.easy_storage_sku_list:
+                    gsheets_data = gsheets_data.drop(index)
+
+            print('-----------------------------------')
+            print('Products to be removed from Shoper and moved to archived:')
+            print(gsheets_data[['EAN', 'SKU', 'Nazwa']])
+            print('-----------------------------------')
 
             end_time = time.time()
             print(f"Total runtime of select_sold_products: {round(end_time - start_time, 2)} seconds")
 
+            return gsheets_data
         except Exception as e:
             print(f"Fatal error in select_sold_products: {str(e)}")
+            raise
+
+    def batch_move_products_to_archived(self, shoper_client, easystorage_data):
+        """Move products to sold products sheet in batch."""
+        
+        try:
+            self.df_to_move = self.select_offers_sold(shoper_client, easystorage_data)
+            self.source_worksheet = self.sheet.worksheet(self.sheet_name)
+            self.target_worksheet = self.sheet.worksheet(config.SHEET_ARCHIVED_NAME)
+
+            if self.df_to_move.empty:
+                print("No products to move.")
+                print("-----------------------------------")
+                return
+
+            # Convert DataFrame to list of lists for Google Sheets, dropping Row Number column
+            df_without_rows = self.df_to_move.drop(['Row Number', 'ID Shoper'], axis=1)
+            values_to_append = df_without_rows.values.tolist()
+
+            # Get current sheet dimensions
+            current_rows = len(self.target_worksheet.get_all_values())
+            needed_rows = current_rows + len(values_to_append)
+            
+            # Resize the sheet if necessary by adding empty rows
+            if needed_rows > current_rows:
+                self.target_worksheet.resize(rows=needed_rows)
+            
+            # Find the first empty row in target worksheet
+            next_row = current_rows + 1  # Add 1 to start after the last row
+            
+            batch_data = [{
+                'range': f'A{next_row}',
+                'values': values_to_append
+            }]
+
+            # Perform the batch update
+            try:
+                self.target_worksheet.batch_update(batch_data)
+                print(f"✓ | Successfully moved {len(values_to_append)} products to archived products sheet.")
+                print("-----------------------------------")
+            except Exception as e:
+                print(f"Failed to move products to archived products sheet: {str(e)}")
+                print("-----------------------------------")
+
+            # Get row numbers to delete in reverse order to maintain correct indices
+            
+            try:
+                row_numbers = sorted(self.df_to_move['Row Number'].tolist(), reverse=True)
+                # Delete rows one by one from bottom to top
+                for row_num in row_numbers:
+                    self.source_worksheet.delete_rows(row_num)
+                
+                print(f"✓ | Successfully removed {len(row_numbers)} rows from outlet sheet.")
+                print("-----------------------------------")
+            except Exception as e:
+                print(f"Failed to remove products from outlet sheet: {str(e)}")
+
+        except Exception as e:
+            print(f"Failed to remove products sheet: {str(e)}")
             raise
