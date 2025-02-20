@@ -2,7 +2,7 @@ import gspread
 import pandas as pd
 from datetime import datetime
 from pathlib import Path
-import os
+import os, time
 import config
 
 class GSheetsClient:
@@ -46,6 +46,10 @@ class GSheetsClient:
         df = pd.DataFrame(data[1:], columns=data[0])  # First row as header
         df.to_excel(os.path.join(self.sheets_dir, 'google_sheets_all.xlsx'), index=False)
         
+        # Making sure the necessary data is properly formatted in gsheets
+        df['SKU'] = df['SKU'].str.upper()
+        df['Uszkodzenie'] = df['Uszkodzenie'].str.upper()
+
         if include_row_numbers:
             df.insert(0, 'Row Number', range(2, len(df) + 2)) # GSheets rows start at 2
 
@@ -227,4 +231,47 @@ class GSheetsClient:
 
         except Exception as e:
             print(f"Failed to move products to lacking products sheet: {str(e)}")
+            raise
+
+    def select_offers_sold(self, shoper_client, easystorage_data):
+
+        try:
+            start_time = time.time()
+
+            self.easy_storage_data = easystorage_data
+            self.easy_storage_data['SKU'] = self.easy_storage_data['SKU'].str.upper()
+            self.easy_storage_sku_list = self.easy_storage_data['SKU'].tolist()
+            print(self.easy_storage_data)
+            print(self.easy_storage_sku_list)
+
+            # gsheets_data = self.get_data(include_row_numbers=True)
+            # gsheets_data = gsheets_data[
+            #     (gsheets_data['Wystawione'] == 'TRUE') & 
+            #     (gsheets_data['ID Shoper'].notna()) & 
+            #     (gsheets_data['ID Shoper'] != '') & 
+            #     (gsheets_data['ID Shoper'] != 0)
+            # ]
+
+            # columns_to_keep = ['Row Number', 'EAN', 'SKU', 'Nazwa', 'Uszkodzenie', 'Data', 'Wystawione', 'Data wystawienia', 'Druga Obniżka']
+            # gsheets_data = gsheets_data[columns_to_keep]
+            # gsheets_data['Status'] = 'Sprzedane'
+            # gsheets_data['Zutylizowane'] = 'TRUE'
+
+            # for index, row in gsheets_data.iterrows():
+
+            #     product_sku = str(row['SKU'])
+            #     product_data = shoper_client.get_a_single_product(row['ID Shoper'])
+            #     product_stock = int(product_data['stock']['stock'])
+
+            #     # If product has 0 items on Shoper and it is not in easy storage warehouse
+            #     # if product_stock != 0 or product_sku in self.easy_storage_sku_list:
+            #     #     gsheets_data = gsheets_data.drop(index)
+
+            # print(gsheets_data)
+
+            end_time = time.time()
+            print(f"Total runtime of select_sold_products: {round(end_time - start_time, 2)} seconds")
+
+        except Exception as e:
+            print(f"Fatal error in select_sold_products: {str(e)}")
             raise

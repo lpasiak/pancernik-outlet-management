@@ -2,6 +2,7 @@ from datetime import datetime
 import os
 import config
 import time
+import pandas as pd
 
 def create_shoper_offers(shoper_client, gsheets_client):
 
@@ -199,21 +200,3 @@ def discount_offers(shoper_client, gsheets_client):
     except Exception as e:
         print(f"Fatal error in discount_offers: {str(e)}")
         raise
-
-def select_sold_products(shoper_client, gsheets_client, easystorage_data):
-
-    easy_storage_data = easystorage_data
-    easy_storage_skus = easy_storage_data['SKU'].tolist()
-
-    gsheets_data = gsheets_client.get_data(include_row_numbers=True)
-    gsheets_data = gsheets_data[gsheets_data['Wystawione'] == 'TRUE']
-
-    for _, gsheets_row in gsheets_data.iterrows():
-        product_data = shoper_client.get_a_single_product(gsheets_row['ID Shoper'])
-        product_stock = product_data['stock']['stock']
-        print(f'Product {gsheets_row["SKU"]} has {product_stock} in stock')
-
-        if str(gsheets_row['SKU']) in easy_storage_skus:
-            print(f'Product {gsheets_row["SKU"]} is in easy storage data')
-        else:
-            print(f'Product {gsheets_row["SKU"]} is not in easy storage data')
