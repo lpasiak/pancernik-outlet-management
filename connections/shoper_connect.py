@@ -45,6 +45,8 @@ class ShoperAPIClient:
                 return response
 
     def get_all_products(self):
+
+        start_time = time.time()
         products = []
         page = 1
         url = f'{self.site_url}/webapi/rest/products'
@@ -70,6 +72,12 @@ class ShoperAPIClient:
 
         df = pd.DataFrame(products)
         df.to_excel(os.path.join(self.sheets_dir, 'shoper_all_products.xlsx'), index=False)
+
+        end_time = time.time()
+        total_seconds = end_time - start_time
+        minutes = int(total_seconds // 60)
+        seconds = round(total_seconds % 60, 2)
+        print(f"Total runtime of get_all_products: {minutes} minutes and {seconds} seconds")
         return df
 
     def get_limited_products(self, max_pages):
