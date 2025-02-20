@@ -44,7 +44,16 @@ def main():
         elif action == '4':
             operations.discount_offers(shoper_client, outlet_gsheets_client)
         elif action == '5':
-            outlet_gsheets_client.batch_move_products_to_archived(shoper_client, easystorage_data)
+            x = '''Czy pobrałeś wszystkie najnowsze produkty z EasyStorage? (t/n)
+Akcja: '''
+            if input(x) == 't':
+                sold_products = outlet_gsheets_client.batch_move_products_to_archived(shoper_client, easystorage_data)
+                shoper_id_list = sold_products['ID Shoper'].tolist()
+                shoper_client.remove_products_from_a_list(shoper_id_list)
+            elif input(x) == 'n':
+                print('Pobierz najnowsze produkty z EasyStorage i wrzuć je do "data/easystorage.xlsx".')
+            else:
+                print('Nie ma takiego wyboru :/')
         elif action == 'q':
             print('Do zobaczenia!')
             break

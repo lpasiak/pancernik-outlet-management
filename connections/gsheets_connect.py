@@ -126,7 +126,7 @@ class GSheetsClient:
             (all_offers["Wystawione"] != 'TRUE') & 
             (all_offers["SKU"].notna() & all_offers["SKU"].ne(''))
         )
-        selected_offers = all_offers[mask]
+        selected_offers = all_offers[mask].copy()
         selected_offers['Row Number'] = all_offers.loc[mask, 'Row Number']
         
         # If the product EAN exists in Shoper, drop the offer from the selected_offers df
@@ -191,7 +191,7 @@ class GSheetsClient:
             df_without_rows = self.df_to_move.drop('Row Number', axis=1)
             values_to_append = df_without_rows.values.tolist()
 
-            # Get current sheet dimensions
+            # Get current sheet dimensions and calculate needed rows
             current_rows = len(self.target_worksheet.get_all_values())
             needed_rows = current_rows + len(values_to_append)
             
@@ -222,6 +222,7 @@ class GSheetsClient:
                 
                 # Delete rows one by one from bottom to top
                 for row_num in row_numbers:
+                    time.sleep(0.5)  # Half second delay between deletions
                     self.source_worksheet.delete_rows(row_num)
                 
                 print(f"✓ | Successfully removed {len(row_numbers)} rows from outlet sheet.")
@@ -327,11 +328,12 @@ class GSheetsClient:
                 print("-----------------------------------")
 
             # Get row numbers to delete in reverse order to maintain correct indices
-            
             try:
                 row_numbers = sorted(self.df_to_move['Row Number'].tolist(), reverse=True)
-                # Delete rows one by one from bottom to top
+                
+                # Delete rows with delay to avoid API rate limits
                 for row_num in row_numbers:
+                    time.sleep(0.5)  # Half second delay between deletions
                     self.source_worksheet.delete_rows(row_num)
                 
                 print(f"✓ | Successfully removed {len(row_numbers)} rows from outlet sheet.")
@@ -339,6 +341,8 @@ class GSheetsClient:
             except Exception as e:
                 print(f"Failed to remove products from outlet sheet: {str(e)}")
 
+            return self.df_to_move
+        
         except Exception as e:
             print(f"Failed to remove products sheet: {str(e)}")
             raise
