@@ -101,9 +101,13 @@ class ShoperAPIClient:
     def get_a_single_product(self, product_id):
         url = f'{self.site_url}/webapi/rest/products/{product_id}'
         response = self._handle_request('GET', url)
-        product = response.json()
 
-        return product
+        if response.status_code != 200:
+            print(f'Product {product_id} doesn\'t exist')
+            return None
+        else:
+            product = response.json()
+            return product
     
     def get_a_single_product_by_code(self, product_code):
         url = f'{self.site_url}/webapi/rest/products'
