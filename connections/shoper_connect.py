@@ -446,6 +446,9 @@ class ShoperAPIClient:
 
     def remove_products_from_a_list(self, id_list):
 
+        products_counter_all = len(id_list)
+        products_counter_removed = 0
+
         for product_id in id_list:
 
             url = f"{self.site_url}/webapi/rest/products/{product_id}"
@@ -454,7 +457,8 @@ class ShoperAPIClient:
                 response.raise_for_status()
                 
                 if response.status_code == 200:
-                    print(f"✓ | Product {product_id} removed successfully!")
+                    products_counter_removed += 1
+                    print(f"✓ | Product {product_id} removed successfully! | {products_counter_removed}/{products_counter_all}")
                 else:
                     print(f"X | Failed to remove product {product_id}. API Response: {response.text}")
 

@@ -102,14 +102,26 @@ class GSheetsClient:
             (all_offers["Wystawione"] == 'TRUE') & 
             (all_offers["SKU"].notna() & all_offers["SKU"].ne('')) &
             (all_offers["Druga Obniżka"] == 'FALSE') &
-            ((today - all_offers['Data wystawienia']).dt.days > config.DISCOUNT_DAYS)
+            ((today - all_offers['Data wystawienia']).dt.days >= config.DISCOUNT_DAYS)
         )
         selected_offers = all_offers[mask]
 
         if len(selected_offers) > 0:
             selected_offers.to_excel(os.path.join(self.sheets_dir, 'google_sheets_to_discount.xlsx'), index=False)
             print('Selected offers ready to be discounted.')
+            print(selected_offers[['EAN', 'SKU']])
             print("-----------------------------------")
+            while True:
+                x = str(input('Should I proceed? (y/n): '))
+                if x == 'y':
+                    print('Continuing...')
+                    break
+                elif x == 'n':
+                    print('Exiting...')
+                    sys.exit()
+                else:
+                    print('Invalid input. Please enter y or n.')
+
         else:
             print('No offers ready to be discounted.')
             print("-----------------------------------")
@@ -222,7 +234,7 @@ class GSheetsClient:
                 
                 # Delete rows one by one from bottom to top
                 for row_num in row_numbers:
-                    time.sleep(0.5)  # Half second delay between deletions
+                    time.sleep(1)  # Delay between deletions
                     self.source_worksheet.delete_rows(row_num)
                 
                 print(f"✓ | Successfully removed {len(row_numbers)} rows from outlet sheet.")
@@ -274,7 +286,7 @@ class GSheetsClient:
 
             print('-----------------------------------')
             print('Products to be removed from Shoper and moved to archived:')
-            print(gsheets_data[['EAN', 'SKU', 'Nazwa']])
+            print(gsheets_data[['EAN', 'SKU']])
             print('-----------------------------------')
 
             while True:
@@ -345,10 +357,12 @@ class GSheetsClient:
                 row_numbers = sorted(self.df_to_move['Row Number'].tolist(), reverse=True)
                 
                 # Delete rows with delay to avoid API rate limits
+                print(f'Removing products from outlet sheet...')
                 for row_num in row_numbers:
-                    time.sleep(0.5)  # Half second delay between deletions
+                    time.sleep(1)  # Delay between deletions
                     self.source_worksheet.delete_rows(row_num)
-                
+                    print(f'Product from {row_num} removed.')
+
                 print(f"✓ | Successfully removed {len(row_numbers)} rows from outlet sheet.")
                 print("-----------------------------------")
             except Exception as e:

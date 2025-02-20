@@ -166,11 +166,12 @@ def discount_offers(shoper_client, gsheets_client):
         start_time = time.time()
 
         all_products = gsheets_client.select_offers_for_discount()
-        
+
         counter_offer = all_products.shape[0]
         counter_offers_discounted = 0
         sheet_updates = []
         
+        print(f'{counter_offer} offers to be discounted.')
         for _, row in all_products.iterrows():
             product_id = row['ID Shoper']
             product_code = row['SKU']
