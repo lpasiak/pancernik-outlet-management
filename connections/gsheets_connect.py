@@ -2,7 +2,7 @@ import gspread
 import pandas as pd
 from datetime import datetime
 from pathlib import Path
-import os, time
+import os, time, sys
 import config
 
 class GSheetsClient:
@@ -275,6 +275,19 @@ class GSheetsClient:
             print('-----------------------------------')
             print('Products to be removed from Shoper and moved to archived:')
             print(gsheets_data[['EAN', 'SKU', 'Nazwa']])
+            print('-----------------------------------')
+
+            while True:
+                x = str(input('Should I proceed? (y/n): '))
+                if x == 'y':
+                    print('Continuing...')
+                    break
+                elif x == 'n':
+                    print('Exiting...')
+                    sys.exit()
+                else:
+                    print('Invalid input. Please enter y or n.')
+
             print('-----------------------------------')
 
             end_time = time.time()
