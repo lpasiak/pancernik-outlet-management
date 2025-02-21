@@ -6,6 +6,7 @@ def transform_offer_to_product(source_product, outlet_code, damage_type):
     """Transforms a downloaded Shoper offer into a ready-to-upload product."""
 
     outlet_description = info.damage_types_long[damage_type]
+    outlet_description = outlet_description.replace('[SKU_OUTLET_CODE]', outlet_code)
     source_description = source_product["translations"]["pl_PL"]["description"]
     product_description = outlet_description + source_description
     product_description_short = info.damage_types_short[damage_type]
