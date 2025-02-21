@@ -141,6 +141,7 @@ class GSheetsClient:
         selected_offers = all_offers[mask].copy()
         selected_offers['Row Number'] = all_offers.loc[mask, 'Row Number']
         
+        print('Checking if all the products exist on Shoper...')
         # If the product EAN exists in Shoper, drop the offer from the selected_offers df
         try:
             for index, row in selected_offers.iterrows():
@@ -149,8 +150,13 @@ class GSheetsClient:
                 if response is not None:
                     selected_offers = selected_offers.drop(index)
 
-            print('The offers above will be moved to lacking products.')
-            print("-----------------------------------")
+            if selected_offers.empty:
+                print('No products to move to lacking products.')
+                print("-----------------------------------")
+            else:
+                print('The offers above will be moved to lacking products.')
+                print("-----------------------------------")
+
         except Exception as e:
             print(f'Fatal Error in select_offers_for_lacking: {e}')
                 
@@ -268,6 +274,7 @@ class GSheetsClient:
             gsheets_data['Status'] = 'Sprzedane'
             gsheets_data['Zutylizowane'] = 'TRUE'
 
+
             if gsheets_data.empty:
                 return
 
@@ -361,7 +368,6 @@ class GSheetsClient:
                 for row_num in row_numbers:
                     time.sleep(1)  # Delay between deletions
                     self.source_worksheet.delete_rows(row_num)
-                    print(f'Product from {row_num} removed.')
 
                 print(f"✓ | Successfully removed {len(row_numbers)} rows from outlet sheet.")
                 print("-----------------------------------")
@@ -373,3 +379,23 @@ class GSheetsClient:
         except Exception as e:
             print(f"Failed to remove products sheet: {str(e)}")
             raise
+
+    def _handle_worksheet_operation(self, operation, *args, **kwargs):
+        """Handle worksheet operations with automatic retry on rate limit errors."""
+        while True:
+            try:
+                if operation == 'delete_rows':
+                    return self.source_worksheet.delete_rows(*args, **kwargs)
+                # Add other worksheet operations as needed
+                else:
+                    raise ValueError(f"Unknown operation: {operation}")
+            except gspread.exceptions.APIError as e:
+                if "RESOURCE_EXHAUSTED" in str(e) or "RATE_LIMIT_EXCEEDED" in str(e):
+                    # Default backoff of 1 second on rate limit
+                    time.sleep(1)
+                    continue
+                else:
+                    raise
+
+    def delete_rows(self, row_num):
+        return self._handle_worksheet_operation('delete_rows', row_num)
