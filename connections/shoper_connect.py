@@ -3,6 +3,7 @@ import requests, time, os, json
 from pathlib import Path
 from . import shoper_data_transform
 import config
+from datetime import datetime
 
 class ShoperAPIClient:
 
@@ -46,6 +47,8 @@ class ShoperAPIClient:
 
     def get_all_products(self):
 
+        today = datetime.now().strftime("%m-%d-%Y %H-%M-%S")
+
         start_time = time.time()
         products = []
         page = 1
@@ -71,7 +74,7 @@ class ShoperAPIClient:
             page += 1
 
         df = pd.DataFrame(products)
-        df.to_excel(os.path.join(self.sheets_dir, 'shoper_all_products.xlsx'), index=False)
+        df.to_excel(os.path.join(self.sheets_dir, f'shoper_all_products_{config.SITE} {today}.xlsx'), index=False)
 
         end_time = time.time()
         total_seconds = end_time - start_time
