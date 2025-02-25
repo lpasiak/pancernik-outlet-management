@@ -12,13 +12,37 @@ def transform_offer_to_product(source_product, outlet_code, damage_type):
     product_description_short = info.damage_types_short[damage_type]
     outlet_price = set_outlet_price(source_product)
     tags = [6] if config.SITE == 'MAIN' else [1]
+    product_type = None
+
+    # Safely get gfx_id
+    try:
+        gfx_id = source_product['img'][0]['gfx_id']
+    except (KeyError, IndexError, TypeError):
+        gfx_id = None
+        print(f"Warning: No valid image found for product {outlet_code}")
+
+    # Fix the product type handling
+    if source_product['attributes'] != []:
+        try:
+            if config.SITE == 'MAIN':
+                product_type = source_product['attributes']['550']['1370']
+            elif config.SITE == 'TEST':
+                product_type = source_product['attributes']['8']['28']
+            else:
+                raise ValueError(f"Unknown site configuration: {config.SITE}")
+        except (KeyError, TypeError):
+            print(f"Warning: Could not determine product type for {outlet_code}")
+            product_type = None
+
+    # Get category list with safe product_type
     category_list = additional_outlet_category(source_product['attributes'], source_product['categories'])
+
     product_url = source_product['translations']['pl_PL'].get('seo_url', '')
     product_category_id = source_product['category_id']
-    
+
     final_product = {
         'producer_id': source_product['producer_id'],
-        'category_id' : source_product['category_id'],
+        'category_id': source_product['category_id'],
         'categories': category_list,
         'code': outlet_code,
         'additional_producer': source_product.get('additional_producer', ''),
@@ -36,7 +60,7 @@ def transform_offer_to_product(source_product, outlet_code, damage_type):
             'price': outlet_price,
             'active': 1,
             'stock': 1,
-            'gfx_id': source_product['img'][0]['gfx_id'],
+            'gfx_id': gfx_id,
             'availability_id': None,
             'delivery_id': 1,
             'weight': 0.2,
@@ -118,6 +142,8 @@ def additional_outlet_category(product_attribute_dict, categories):
     if not isinstance(categories, list):
         raise ValueError("Categories must be a list")
     
+    product_type = None
+    
     if product_attribute_dict != []:
         try:
             if config.SITE == 'MAIN':
@@ -126,35 +152,40 @@ def additional_outlet_category(product_attribute_dict, categories):
                 product_type = product_attribute_dict['8']['28']
             else:
                 raise ValueError(f"Unknown site configuration: {config.SITE}")
-        except KeyError:
+        except (KeyError, TypeError):
+            print("Warning: Could not determine product type from attributes")
             product_type = None
 
     if config.SITE == 'MAIN':
-        product_type = product_type.lower()
+        
+        if product_type:
+            product_type = product_type.lower()
 
-        category_mapping = {
-            'słuchawki': 7611,
-            'pasek do smartwatcha': 7612,
-            'adapter': 7547,
-            'ładowarka sieciowa': 7537,
-            'ładowarka samochodowa': 7538,
-            'ładowarka indukcyjna': 7539,
-            'powerbank': 7541,
-            'kabel': 7542,
-            'listwa zasilająca': 7543,
-            'rysik': 7544,
-            'obiektyw do telefonu': 7545,
-            'akcesoria rowerowe': 7546,
-            'selfie-stick': 7548
-        }
+            category_mapping = {
+                'słuchawki': 7611,
+                'pasek do smartwatcha': 7612,
+                'adapter': 7547,
+                'ładowarka sieciowa': 7537,
+                'ładowarka samochodowa': 7538,
+                'ładowarka indukcyjna': 7539,
+                'powerbank': 7541,
+                'kabel': 7542,
+                'listwa zasilająca': 7543,
+                'rysik': 7544,
+                'obiektyw do telefonu': 7545,
+                'akcesoria rowerowe': 7546,
+                'selfie-stick': 7548
+            }
 
-        outlet_category = category_mapping.get(product_type)
+            outlet_category = category_mapping.get(product_type)
 
-        if outlet_category is None:
-            if "uchwyt" in product_type and "telefon" in product_type:
-                outlet_category = 7540
-            else:
-                outlet_category = 7525
+            if outlet_category is None:
+                if product_type and "uchwyt" in product_type and "telefon" in product_type:
+                    outlet_category = 7540
+                else:
+                    outlet_category = 7525
+        else:
+            outlet_category = 7525  # Default category when product_type is None
 
     elif config.SITE == 'TEST':
         outlet_category = 1322

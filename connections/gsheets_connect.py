@@ -134,9 +134,14 @@ class GSheetsClient:
 
         columns_to_keep = ['Row Number', 'EAN', 'SKU', 'Nazwa', 'Uszkodzenie', 'Data']
 
+
+        today = datetime.today().strftime('%d-%m-%Y')
+
+        # Select offers that are not published, have a SKU, and have a date that is not today
         mask = (
             (all_offers["Wystawione"] != 'TRUE') & 
-            (all_offers["SKU"].notna() & all_offers["SKU"].ne(''))
+            (all_offers["SKU"].notna() & all_offers["SKU"].ne('') &
+            (all_offers['Data'].fillna('') != today))
         )
         selected_offers = all_offers[mask].copy()
         selected_offers['Row Number'] = all_offers.loc[mask, 'Row Number']
@@ -149,6 +154,7 @@ class GSheetsClient:
                 
                 if response is not None:
                     selected_offers = selected_offers.drop(index)
+                    print(f'Product {row["EAN"]} exists on Shoper.')
 
             if selected_offers.empty:
                 print('No products to move to lacking products.')

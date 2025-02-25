@@ -243,7 +243,7 @@ class ShoperAPIClient:
         if not product:
             print(f"X | Error: Could not fetch source product with code {product_code}")
             return None
-        
+
         product_id = product['product_id']
         
         # Step 2: Extract barcode and related products
@@ -251,8 +251,12 @@ class ShoperAPIClient:
         related_products = {'related': product.get('related', [])}
 
         # Step 3: Transform product for API upload
-        final_product, product_seo, product_category_id = shoper_data_transform.transform_offer_to_product(product, outlet_code, damage_type)
-
+        try:
+            final_product, product_seo, product_category_id = shoper_data_transform.transform_offer_to_product(product, outlet_code, damage_type)
+        except Exception as e:
+            print(f"Error in transform_offer_to_product | Error: {e}")
+            return None
+        
         # Step 4: Send POST request to create the product
         url = f'{self.site_url}/webapi/rest/products'
         try:
