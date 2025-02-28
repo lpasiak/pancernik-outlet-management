@@ -16,7 +16,7 @@ Co chcesz zrobić?
 2. Dopisać atrybuty outletowe głównym produktom
 3. Pobrać wszystkie produkty
 4. Obniżyć ceny starsze niż {config.DISCOUNT_DAYS} dni
-5. Przenieść sprzedane produkty do archiwum
+5. Przenieść produkty do archiwum
 q żeby wyjść.
 Akcja: '''))
 
@@ -33,7 +33,7 @@ def main():
         easystorage_data = EasyStorageData(config.EASYSTORAGE_PATH).outlet_products
     except FileNotFoundError:
         print('No file easystorage.xlsx in data directory')
-    
+
     while True:
         action = get_user_action()
         
@@ -50,10 +50,24 @@ def main():
         elif action == '5':
             x = '''Czy pobrałeś wszystkie najnowsze produkty z EasyStorage? (t/n)\nAkcja: '''
             if input(x) == 't':
-                sold_products = outlet_gsheets_client.batch_move_products_to_archived(shoper_client, easystorage_data)
-                shoper_id_list = sold_products['ID Shoper'].tolist()
+                # Manage sold products
+                sold_products = outlet_gsheets_client.batch_move_sold_products_to_archived(shoper_client, easystorage_data)
                 shoper_client.connect()
-                shoper_client.remove_products_from_a_list(shoper_id_list)
+                
+                if isinstance(sold_products, list):
+                    shoper_client.remove_products_from_a_list(sold_products)
+                else:
+                    print('Nie ma sprzedanych produktów do usunięcia.')
+                
+                # Manage unsold products
+                unsold_products = outlet_gsheets_client.batch_move_unsold_products_to_archived(shoper_client)
+                shoper_client.connect()
+                
+                if isinstance(unsold_products, list):
+                    shoper_client.remove_products_from_a_list(unsold_products)
+                else:
+                    print('Nie ma niesprzedanych produktów do usunięcia.')
+
             elif input(x) == 'n':
                 print('Pobierz najnowsze produkty z EasyStorage i wrzuć je do "data/easystorage.xlsx".')
                 continue

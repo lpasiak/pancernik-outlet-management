@@ -34,7 +34,7 @@ class GSheetsClient:
         self.gc = gspread.service_account(filename=self.credentials_path)
         self.sheet = self.gc.open_by_key(self.sheet_id)
 
-        print(f"Google Authentication {self.sheet_name} successful.")
+        print(f"Google Authentication {config.SHEET} | {self.sheet_name} successful.")
         print("-----------------------------------")
 
     def get_data(self, include_row_numbers=False):
@@ -44,7 +44,6 @@ class GSheetsClient:
         data = self.worksheet.get_all_values()
         
         df = pd.DataFrame(data[1:], columns=data[0])  # First row as header
-        df.to_excel(os.path.join(self.sheets_dir, 'google_sheets_all.xlsx'), index=False)
         
         # Making sure the necessary data is properly formatted in gsheets
         df['SKU'] = df['SKU'].str.upper()
@@ -71,8 +70,6 @@ class GSheetsClient:
             (all_offers['Data'].fillna('') != today)
         )
         selected_offers = all_offers[mask]
-
-        selected_offers.to_excel(os.path.join(self.sheets_dir, 'google_sheets_to_publish.xlsx'), index=False)
         
         print('Selected offers ready to publish.')
         print("-----------------------------------")
@@ -107,7 +104,6 @@ class GSheetsClient:
         selected_offers = all_offers[mask]
 
         if len(selected_offers) > 0:
-            selected_offers.to_excel(os.path.join(self.sheets_dir, 'google_sheets_to_discount.xlsx'), index=False)
             print('Selected offers ready to be discounted.')
             print(selected_offers[['EAN', 'SKU']])
             print("-----------------------------------")
@@ -127,7 +123,7 @@ class GSheetsClient:
             print("-----------------------------------")
 
         return selected_offers
-    
+
     def select_offers_for_lacking(self, shoper_client):
         """Get data of all the items ready to be moved to lacking products (because they have no main product on Shoper)"""
         all_offers = self.get_data(include_row_numbers=True)
@@ -280,7 +276,6 @@ class GSheetsClient:
             gsheets_data['Status'] = 'Sprzedane'
             gsheets_data['Zutylizowane'] = 'TRUE'
 
-
             if gsheets_data.empty:
                 return
 
@@ -298,21 +293,8 @@ class GSheetsClient:
                     gsheets_data = gsheets_data.drop(index)
 
             print('-----------------------------------')
-            print('Products to be removed from Shoper and moved to archived:')
+            print('Sold products to be removed from Shoper and moved to archived:')
             print(gsheets_data[['EAN', 'SKU']])
-            print('-----------------------------------')
-
-            while True:
-                x = str(input('Should I proceed? (y/n): '))
-                if x == 'y':
-                    print('Continuing...')
-                    break
-                elif x == 'n':
-                    print('Exiting...')
-                    sys.exit()
-                else:
-                    print('Invalid input. Please enter y or n.')
-
             print('-----------------------------------')
 
             end_time = time.time()
@@ -323,18 +305,70 @@ class GSheetsClient:
             print(f"Fatal error in select_sold_products: {str(e)}")
             raise
 
-    def batch_move_products_to_archived(self, shoper_client, easystorage_data):
+    def select_offers_unsold(self):
+        """Get data of all the items that haven't been sold"""
+
+        try:
+            start_time = time.time()
+
+            all_offers = self.get_data(include_row_numbers=True)
+        
+            # Convert publication dates to datetime
+            all_offers['Data wystawienia'] = pd.to_datetime(all_offers['Data wystawienia'], format='%d-%m-%Y')
+            today = pd.Timestamp.today()
+
+            # Create mask for filtering
+            mask = (
+                (all_offers["Wystawione"] == 'TRUE') & 
+                (all_offers["SKU"].notna() & all_offers["SKU"].ne('')) &
+                ((today - all_offers['Data wystawienia']).dt.days >= config.ARCHIVE_DAYS)
+            )
+            selected_offers = all_offers[mask]
+
+            columns_to_keep = ['Row Number', 'EAN', 'SKU', 'Nazwa', 'Uszkodzenie', 'Data', 'Wystawione', 'Data wystawienia', 'Druga Obniżka', 'ID Shoper']
+            selected_offers = selected_offers[columns_to_keep]
+            selected_offers['Status'] = 'Do utylizacji'
+            selected_offers['Zutylizowane'] = 'FALSE'
+
+            print('-----------------------------------')
+            print('Unsold products to be removed from Shoper and moved to archived:')
+            print(selected_offers[['EAN', 'SKU']])
+            print('-----------------------------------')
+
+            end_time = time.time()
+            print(f"Total runtime of select_sold_products: {round(end_time - start_time, 2)} seconds")
+
+            return selected_offers
+    
+        except Exception as e:
+            print(f'Fatal Error in select_offers_unsold: {e}')
+
+    def batch_move_sold_products_to_archived(self, shoper_client, easystorage_data):
         """Move products to sold products sheet in batch."""
         
         try:
             self.df_to_move = self.select_offers_sold(shoper_client, easystorage_data)
+
             self.source_worksheet = self.sheet.worksheet(self.sheet_name)
             self.target_worksheet = self.sheet.worksheet(config.SHEET_ARCHIVED_NAME)
 
             if self.df_to_move.empty:
-                print("No products to move.")
+                print("No sold products to move.")
                 print("-----------------------------------")
                 return
+            else:
+                while True:
+                    x = str(input('Should I proceed? (y/n): '))
+                    if x == 'y':
+                        print('Continuing...')
+                        break
+                    elif x == 'n':
+                        print('Exiting...')
+                        sys.exit()
+                    else:
+                        print('Invalid input. Please enter y or n.')
+
+            print('-----------------------------------')
 
             # Convert DataFrame to list of lists for Google Sheets, dropping Row Number column
             df_without_rows = self.df_to_move.drop(['Row Number', 'ID Shoper'], axis=1)
@@ -380,7 +414,83 @@ class GSheetsClient:
             except Exception as e:
                 print(f"Failed to remove products from outlet sheet: {str(e)}")
 
-            return self.df_to_move
+            return self.df_to_move['ID Shoper'].tolist()
+        
+        except Exception as e:
+            print(f"Failed to remove products sheet: {str(e)}")
+            raise
+
+    def batch_move_unsold_products_to_archived(self, shoper_client):
+        """Move products to sold products sheet in batch."""
+        
+        try:
+            self.df_to_move = self.select_offers_unsold()
+            self.source_worksheet = self.sheet.worksheet(self.sheet_name)
+            self.target_worksheet = self.sheet.worksheet(config.SHEET_ARCHIVED_NAME)
+            
+            if self.df_to_move.empty:
+                print("No unsold products to move.")
+                print("-----------------------------------")
+                return
+            else:
+                while True:
+                    x = str(input('Should I proceed? (y/n): '))
+                    if x == 'y':
+                        print('Continuing...')
+                        break
+                    elif x == 'n':
+                        print('Exiting...')
+                        sys.exit()
+                    else:
+                        print('Invalid input. Please enter y or n.')
+
+            print('-----------------------------------')
+
+            # Convert DataFrame to list of lists for Google Sheets, dropping Row Number column
+            df_without_rows = self.df_to_move.drop(['Row Number', 'ID Shoper'], axis=1)
+            values_to_append = df_without_rows.values.tolist()
+
+            # Get current sheet dimensions
+            current_rows = len(self.target_worksheet.get_all_values())
+            needed_rows = current_rows + len(values_to_append)
+            
+            # Resize the sheet if necessary by adding empty rows
+            if needed_rows > current_rows:
+                self.target_worksheet.resize(rows=needed_rows)
+            
+            # Find the first empty row in target worksheet
+            next_row = current_rows + 1  # Add 1 to start after the last row
+            
+            batch_data = [{
+                'range': f'A{next_row}',
+                'values': values_to_append
+            }]
+
+            # Perform the batch update
+            try:
+                self.target_worksheet.batch_update(batch_data)
+                print(f"✓ | Successfully moved {len(values_to_append)} products to archived products sheet.")
+                print("-----------------------------------")
+            except Exception as e:
+                print(f"Failed to move products to archived products sheet: {str(e)}")
+                print("-----------------------------------")
+
+            # Get row numbers to delete in reverse order to maintain correct indices
+            try:
+                row_numbers = sorted(self.df_to_move['Row Number'].tolist(), reverse=True)
+                
+                # Delete rows with delay to avoid API rate limits
+                print(f'Removing products from outlet sheet...')
+                for row_num in row_numbers:
+                    time.sleep(1)  # Delay between deletions
+                    self.source_worksheet.delete_rows(row_num)
+
+                print(f"✓ | Successfully removed {len(row_numbers)} rows from outlet sheet.")
+                print("-----------------------------------")
+            except Exception as e:
+                print(f"Failed to remove products from outlet sheet: {str(e)}")
+
+            return self.df_to_move['ID Shoper'].tolist()
         
         except Exception as e:
             print(f"Failed to remove products sheet: {str(e)}")
