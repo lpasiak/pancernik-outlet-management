@@ -115,7 +115,6 @@ def set_main_product_attributes(shoper_client, gsheets_client):
                     attribute_id,
                     attribute_value
                 )
-                print(f"Updated attributes for EAN: {product_ean}")
             except Exception as e:
                 print(f"Failed to update attributes for EAN {product_ean}: {str(e)}")
 
