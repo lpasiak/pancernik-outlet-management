@@ -29,11 +29,6 @@ def main():
     shoper_client.connect()
     outlet_gsheets_client.connect()
 
-    try:
-        easystorage_data = EasyStorageData(config.EASYSTORAGE_PATH).outlet_products
-    except FileNotFoundError:
-        print('No file easystorage.xlsx in data directory')
-
     while True:
         action = get_user_action()
         
@@ -50,7 +45,12 @@ def main():
         elif action == '5':
             x = '''Czy pobrałeś wszystkie najnowsze produkty z EasyStorage? (t/n)\nAkcja: '''
             if input(x) == 't':
-                # Manage sold products
+
+                try:
+                    easystorage_data = EasyStorageData(config.EASYSTORAGE_PATH).outlet_products
+                except FileNotFoundError:
+                    print('No file easystorage.xlsx in data directory')
+                    
                 sold_products = outlet_gsheets_client.batch_move_sold_products_to_archived(shoper_client, easystorage_data)
                 shoper_client.connect()
                 

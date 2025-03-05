@@ -1,13 +1,13 @@
 import os
 
 # SITE can be either TEST (development) or MAIN (deployment)
-SITE = 'TEST' 
+SITE = 'MAIN' 
 
 # LIMIT for API requests
 SHOPER_LIMIT = 50
 
 # Google Sheet name
-SHEET = 'TEST'
+SHEET = 'MAIN'
 SHEET_NAME = 'Outlety'
 SHEET_LACKING_PRODUCTS_NAME = 'Brak produktów'
 SHEET_ARCHIVED_NAME = 'Archiwum'
